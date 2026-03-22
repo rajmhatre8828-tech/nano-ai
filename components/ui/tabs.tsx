@@ -3,8 +3,8 @@ import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
 
 import { TextClassContext } from '@/components/ui/text';
+import { useSettings } from '@/hooks/use-settings';
 import { cn } from '@/lib/utils';
-import { useSettingsValue } from '@/store/settings';
 
 function Tabs({ className, ...props }: TabsPrimitive.RootProps & React.RefAttributes<TabsPrimitive.RootRef>) {
   return <TabsPrimitive.Root className={cn('flex flex-col gap-2', className)} {...props} />;
@@ -16,7 +16,7 @@ function TabsList({ className, ...props }: TabsPrimitive.ListProps & React.RefAt
 
 function TabsTrigger({ className, onPress, ...props }: TabsPrimitive.TriggerProps & React.RefAttributes<TabsPrimitive.TriggerRef>) {
   const { value } = TabsPrimitive.useRootContext();
-  const { hapticFeedback } = useSettingsValue();
+  const [{ hapticFeedback }] = useSettings();
 
   return (
     <TextClassContext.Provider value={cn('text-foreground dark:text-muted-foreground text-sm font-medium', value === props.value && 'dark:text-foreground')}>

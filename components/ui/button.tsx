@@ -3,8 +3,8 @@ import * as Haptics from 'expo-haptics';
 import { Platform, Pressable } from 'react-native';
 
 import { TextClassContext } from '@/components/ui/text';
+import { useSettings } from '@/hooks/use-settings';
 import { cn } from '@/lib/utils';
-import { useSettingsValue } from '@/store/settings';
 
 const buttonVariants = cva(
   cn(
@@ -73,7 +73,7 @@ const buttonTextVariants = cva(cn('text-sm font-medium text-foreground', Platfor
 type ButtonProps = React.ComponentProps<typeof Pressable> & React.RefAttributes<typeof Pressable> & VariantProps<typeof buttonVariants>;
 
 function Button({ className, variant, size, onPress, onLongPress, ...props }: ButtonProps) {
-  const { hapticFeedback } = useSettingsValue();
+  const [{ hapticFeedback }] = useSettings();
 
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>

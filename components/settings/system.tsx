@@ -4,7 +4,7 @@ import { useColorScheme } from 'nativewind';
 import { useRef } from 'react';
 import { View } from 'react-native';
 
-import { useSettings } from '@/store/settings';
+import { useSettings } from '@/hooks/use-settings';
 
 import { SettingSection } from '../setting-section';
 import { Button } from '../ui/button';

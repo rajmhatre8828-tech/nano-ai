@@ -16,10 +16,10 @@ import { Text } from '@/components/ui/text';
 import { useChat } from '@/hooks/use-chat';
 import { useLiveActivity } from '@/hooks/use-live-activity';
 import { useModels } from '@/hooks/use-models';
+import { useSettings } from '@/hooks/use-settings';
 import { STOP_LIVE_ACTIVITY_ACTION_TARGET } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { useSessions } from '@/store/sessions';
-import { useSettingsValue } from '@/store/settings';
 
 const LOGO = {
   light: require('@/assets/images/logo.png'),
@@ -113,7 +113,7 @@ export default function Index() {
 function Header(props: { handlePressSidebarIcon: () => void }) {
   const { handlePressSidebarIcon } = props;
   const { colorScheme, toggleColorScheme } = useColorScheme();
-  const { host } = useSettingsValue();
+  const [{ host }] = useSettings();
   const { messages } = useChat();
   const [, { create }] = useSessions();
   const { currentModel } = useModels();

@@ -1,7 +1,5 @@
-import { useSetStorageAtom, useStorageAtom, useStorageAtomValue } from '@/hooks/use-storage-atom';
 import { AIProviderEnum } from '@/lib/ai';
 import { createStorageAtom, StorageKey } from '@/lib/local-storage';
-import { withImmer } from '@/lib/utils';
 
 export interface Model {
   name: string;
@@ -26,19 +24,3 @@ export const settings = createStorageAtom(StorageKey.SETTINGS, {
   apiKeyList: [],
   hapticFeedback: true
 } as Settings);
-
-export const useSettings = () => {
-  const [_settings, _setSettings] = useStorageAtom(settings);
-
-  return [_settings, withImmer(_setSettings)] as const;
-};
-
-export const useSettingsValue = () => {
-  return useStorageAtomValue(settings);
-};
-
-export const useSetSettings = () => {
-  const _setSettings = useSetStorageAtom(settings);
-
-  return withImmer(_setSettings);
-};

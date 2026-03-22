@@ -9,8 +9,8 @@ import { Icon } from '@/components/ui/icon';
 import { Spinner } from '@/components/ui/spinner';
 import { Text } from '@/components/ui/text';
 import { useModels } from '@/hooks/use-models';
+import { useSettings } from '@/hooks/use-settings';
 import { cn } from '@/lib/utils';
-import { useSettings } from '@/store/settings';
 
 export default function ModalScreen() {
   const router = useRouter();

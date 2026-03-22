@@ -1,9 +1,10 @@
 import { fetch } from 'expo/fetch';
 import { useState } from 'react';
 
+import { useSettings } from '@/hooks/use-settings';
 import { AIProviderEnum } from '@/lib/ai';
 import { useSessions } from '@/store/sessions';
-import { type Model, useSettings } from '@/store/settings';
+import type { Model } from '@/store/settings';
 
 export function useModels() {
   const [{ provider, host: baseURL, apiKey }] = useSettings();

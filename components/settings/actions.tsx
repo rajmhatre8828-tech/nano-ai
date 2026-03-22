@@ -2,9 +2,9 @@ import * as Linking from 'expo-linking';
 import { Github, History, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 
+import { useSettings } from '@/hooks/use-settings';
 import { PROJECT_GITHUB_URL } from '@/lib/constants';
 import { useSessions } from '@/store/sessions';
-import { useSetSettings } from '@/store/settings';
 
 import { SettingSection } from '../setting-section';
 import { Button } from '../ui/button';
@@ -13,7 +13,7 @@ import { Icon } from '../ui/icon';
 import { Text } from '../ui/text';
 
 export function Actions() {
-  const setSettings = useSetSettings();
+  const [, setSettings] = useSettings();
   const [, { clear }] = useSessions();
   const [open, setOpen] = useState(false);
 

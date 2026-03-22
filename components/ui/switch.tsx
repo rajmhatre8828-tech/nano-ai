@@ -2,11 +2,11 @@ import * as SwitchPrimitives from '@rn-primitives/switch';
 import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
 
+import { useSettings } from '@/hooks/use-settings';
 import { cn } from '@/lib/utils';
-import { useSettingsValue } from '@/store/settings';
 
 function Switch({ className, onPress, ...props }: SwitchPrimitives.RootProps & React.RefAttributes<SwitchPrimitives.RootRef>) {
-  const { hapticFeedback } = useSettingsValue();
+  const [{ hapticFeedback }] = useSettings();
 
   return (
     <SwitchPrimitives.Root

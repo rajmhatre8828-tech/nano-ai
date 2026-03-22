@@ -1,17 +1,16 @@
 import { useRouter } from 'expo-router';
-import { useAtomValue } from 'jotai';
 import { AlertCircleIcon } from 'lucide-react-native';
 import { Platform, TouchableOpacity, View } from 'react-native';
 
+import { useSettings } from '@/hooks/use-settings';
 import { cn } from '@/lib/utils';
-import { settings as settingsAtom } from '@/store/settings';
 
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Text } from './ui/text';
 
 export function ConnectTips(props: { className?: string }) {
   const { className } = props;
-  const { host } = useAtomValue(settingsAtom);
+  const [{ host }] = useSettings();
   const router = useRouter();
 
   if (host) return null;

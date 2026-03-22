@@ -4,8 +4,8 @@ import * as Haptics from 'expo-haptics';
 import { type ComponentProps, type ReactNode, useRef } from 'react';
 import { type GestureResponderEvent, Pressable, View } from 'react-native';
 
+import { useSettings } from '@/hooks/use-settings';
 import { cn } from '@/lib/utils';
-import { useSettingsValue } from '@/store/settings';
 
 import { Input } from './ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -29,7 +29,7 @@ export function SelectInput<T extends SelectOption>(props: SelectInputProps<T>) 
   const { options = [], renderItem, onPressItem, contentProps, emptyView, children, ...inputProps } = props;
   const { className, ...others } = contentProps || {};
   const ref = useRef<TriggerRef>(null);
-  const { hapticFeedback } = useSettingsValue();
+  const [{ hapticFeedback }] = useSettings();
 
   return (
     <Popover>

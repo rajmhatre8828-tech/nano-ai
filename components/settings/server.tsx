@@ -2,9 +2,9 @@ import { useColorScheme } from 'nativewind';
 import { useState } from 'react';
 import { Image, type ImageURISource, Pressable, View } from 'react-native';
 
+import { useSettings } from '@/hooks/use-settings';
 import { useToast } from '@/hooks/use-toast';
 import { AIProviderEnum } from '@/lib/ai';
-import { useSettings } from '@/store/settings';
 
 import { SelectInput } from '../select-input';
 import { SettingSection } from '../setting-section';

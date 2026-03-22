@@ -3,9 +3,9 @@ import { ArrowUpIcon, Lightbulb } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Keyboard, View } from 'react-native';
 
+import { useSettings } from '@/hooks/use-settings';
 import { cn } from '@/lib/utils';
 import { useSessions } from '@/store/sessions';
-import { useSettingsValue } from '@/store/settings';
 
 import { Button } from './ui/button';
 import { Icon } from './ui/icon';
@@ -15,7 +15,7 @@ import { Toggle } from './ui/toggle';
 export function MainInput(props: { onSend: (input: string, think?: boolean) => Promise<void>; onAbort: () => void }) {
   const { onSend, onAbort } = props;
   const [input, setInput] = useState('');
-  const { host, hapticFeedback } = useSettingsValue();
+  const [{ host, hapticFeedback }] = useSettings();
   const [{ current, data }, { toggleThink }] = useSessions();
   const { think, model, messages } = data[current];
   const inChatting = useMemo(() => {
