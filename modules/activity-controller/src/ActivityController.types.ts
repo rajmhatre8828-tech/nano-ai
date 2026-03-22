@@ -1,4 +1,4 @@
-import type { MessageStatus } from '@/store/chats';
+import type { MessageStatus } from '@/store/sessions';
 
 export interface LiveActivityParams {
   question: string;

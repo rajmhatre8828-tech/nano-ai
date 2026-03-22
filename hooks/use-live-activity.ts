@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import { AppState } from 'react-native';
 
 import { areLiveActivitiesEnabled, isLiveActivityRunning, startLiveActivity, stopLiveActivity, updateLiveActivity } from '@/modules/activity-controller';
-import type { Message } from '@/store/chats';
+import type { Message } from '@/store/sessions';
 
 import { useChat } from './use-chat';
 

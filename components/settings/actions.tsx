@@ -3,7 +3,7 @@ import { Github, History, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 
 import { PROJECT_GITHUB_URL } from '@/lib/constants';
-import { useChatList } from '@/store/chats';
+import { useSessions } from '@/store/sessions';
 import { useSetSettings } from '@/store/settings';
 
 import { SettingSection } from '../setting-section';
@@ -14,7 +14,7 @@ import { Text } from '../ui/text';
 
 export function Actions() {
   const setSettings = useSetSettings();
-  const [, { clear }] = useChatList();
+  const [, { clear }] = useSessions();
   const [open, setOpen] = useState(false);
 
   const handleViewOnGithub = async () => {

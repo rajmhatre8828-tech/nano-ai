@@ -6,7 +6,7 @@ import { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useScrollToEnd } from '@/hooks/use-scroll-to-end';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useUpdateLayoutEffect } from '@/hooks/use-update-effect';
-import type { Message } from '@/store/chats';
+import type { Message } from '@/store/sessions';
 
 import { Copy } from './copy';
 import { Markdown } from './markdown';

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Keyboard, View } from 'react-native';
 
 import { cn } from '@/lib/utils';
-import { useChatList } from '@/store/chats';
+import { useSessions } from '@/store/sessions';
 import { useSettingsValue } from '@/store/settings';
 
 import { Button } from './ui/button';
@@ -16,7 +16,7 @@ export function MainInput(props: { onSend: (input: string, think?: boolean) => P
   const { onSend, onAbort } = props;
   const [input, setInput] = useState('');
   const { host, hapticFeedback } = useSettingsValue();
-  const [{ current, data }, { toggleThink }] = useChatList();
+  const [{ current, data }, { toggleThink }] = useSessions();
   const { think, model, messages } = data[current];
   const inChatting = useMemo(() => {
     if (messages.length > 0) {

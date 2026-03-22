@@ -4,21 +4,21 @@ import { useCallback, useMemo } from 'react';
 import { type GestureResponderEvent, SectionList, View } from 'react-native';
 
 import { cn, isInThisWeek, isInToday } from '@/lib/utils';
-import type { Chat } from '@/store/chats';
-import { useChatList } from '@/store/chats';
+import type { Session } from '@/store/sessions';
+import { useSessions } from '@/store/sessions';
 
 import { Button } from './ui/button';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuShortcut, ContextMenuTrigger } from './ui/context-menu';
 import { Icon } from './ui/icon';
 import { Text } from './ui/text';
 
-type HistorySection = (Chat & { index: number; latestTs: number })[];
+type HistorySection = (Session & { index: number; latestTs: number })[];
 
 export function DrawerContent(props: { close: () => void }) {
   const { close } = props;
   const router = useRouter();
-  const [chats, { create, switchTo, remove }] = useChatList();
-  const { current: currentIndex, data } = chats;
+  const [sessions, { create, switchTo, remove }] = useSessions();
+  const { current: currentIndex, data } = sessions;
   const historyData = useMemo(() => {
     const today: HistorySection = [];
     const thisWeek: HistorySection = [];
@@ -52,7 +52,7 @@ export function DrawerContent(props: { close: () => void }) {
         data: older.sort((a, b) => b.latestTs - a.latestTs)
       }
     ];
-  }, [chats]);
+  }, [sessions]);
   const ActionButton = useCallback((props: { icon: LucideIcon; children: string; onPress?: (e: GestureResponderEvent) => void }) => {
     const { icon, children, onPress } = props;
 

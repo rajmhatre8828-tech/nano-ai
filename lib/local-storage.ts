@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { WritableAtom } from 'jotai';
 import { atomWithStorage, createJSONStorage, RESET } from 'jotai/utils';
 
-import type { Chat } from '@/store/chats';
+import type { Session } from '@/store/sessions';
 import type { Settings } from '@/store/settings';
 
 export enum StorageKey {
@@ -12,7 +12,7 @@ export enum StorageKey {
 }
 
 export interface StorageItems {
-  [StorageKey.CHATS_HISTORY]: { current: number; data: Chat[] };
+  [StorageKey.CHATS_HISTORY]: { current: number; data: Session[] };
   [StorageKey.SETTINGS]: Settings;
 }
 

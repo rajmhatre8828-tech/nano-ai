@@ -2,14 +2,14 @@ import type { ModelMessage } from 'ai';
 import { useCallback, useRef, useState } from 'react';
 
 import { AIRegistry, chat } from '@/lib/ai';
-import { type Message, useChatList } from '@/store/chats';
+import { type Message, useSessions } from '@/store/sessions';
 import { useSettingsValue } from '@/store/settings';
 
 export function useChat() {
   const abortFnRef = useRef<() => void>(null);
   const settings = useSettingsValue();
   const [error, setError] = useState<Error>();
-  const [{ current, data }, { set: setChats }] = useChatList();
+  const [{ current, data }, { set: setSessions }] = useSessions();
   const { model, messages = [] } = data[current] || {};
 
   const chatWithAI = useCallback(
@@ -29,8 +29,8 @@ export function useChat() {
 
   const updateMessage = useCallback(
     (updater: (msg: Message) => void) => {
-      setChats(chats => {
-        const msgs = chats.data[current].messages;
+      setSessions(sessions => {
+        const msgs = sessions.data[current].messages;
         const lastMsg = msgs[msgs.length - 1];
         updater(lastMsg);
       });
@@ -50,8 +50,8 @@ export function useChat() {
       isStreaming: false
     };
 
-    setChats(chats => {
-      chats.data[current].messages = [...chats.data[current].messages, userMessage, assistantMessage];
+    setSessions(sessions => {
+      sessions.data[current].messages = [...sessions.data[current].messages, userMessage, assistantMessage];
     });
 
     const [stream, abort] = chatWithAI(input);

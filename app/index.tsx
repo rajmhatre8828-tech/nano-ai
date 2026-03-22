@@ -18,7 +18,7 @@ import { useLiveActivity } from '@/hooks/use-live-activity';
 import { useModels } from '@/hooks/use-models';
 import { STOP_LIVE_ACTIVITY_ACTION_TARGET } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { useChatList } from '@/store/chats';
+import { useSessions } from '@/store/sessions';
 import { useSettingsValue } from '@/store/settings';
 
 const LOGO = {
@@ -39,7 +39,7 @@ const IMAGE_STYLE = {
 export default function Index() {
   const { colorScheme } = useColorScheme();
   const { start: startLiveActivity, stop: stopLiveActivity, running } = useLiveActivity();
-  const [{ current, data }] = useChatList();
+  const [{ current, data }] = useSessions();
   const drawerRef = useRef<DrawerLayoutMethods>(null);
   const { messages, sendMessage, stop } = useChat();
   const requestAbortMap = useRef<Record<string, () => void>>({});
@@ -115,7 +115,7 @@ function Header(props: { handlePressSidebarIcon: () => void }) {
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const { host } = useSettingsValue();
   const { messages } = useChat();
-  const [, { create }] = useChatList();
+  const [, { create }] = useSessions();
   const { currentModel } = useModels();
   const router = useRouter();
 

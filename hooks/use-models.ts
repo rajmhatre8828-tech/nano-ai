@@ -2,14 +2,14 @@ import { fetch } from 'expo/fetch';
 import { useState } from 'react';
 
 import { AIProviderEnum } from '@/lib/ai';
-import { useChatList } from '@/store/chats';
+import { useSessions } from '@/store/sessions';
 import { type Model, useSettings } from '@/store/settings';
 
 export function useModels() {
   const [{ provider, host: baseURL, apiKey }] = useSettings();
   const [models, setModels] = useState<Model[]>([]);
-  const [chats, { set }] = useChatList();
-  const { current, data } = chats;
+  const [sessions, { set }] = useSessions();
+  const { current, data } = sessions;
   const { model: currentModel } = data[current] || {};
 
   const discoverModels = async () => {
@@ -88,8 +88,8 @@ export function useModels() {
   };
 
   const setCurrentModel = (model: Model) => {
-    set(chats => {
-      const { current, data } = chats;
+    set(sessions => {
+      const { current, data } = sessions;
       data[current].model = model;
     });
   };
