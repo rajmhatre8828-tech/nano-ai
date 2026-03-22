@@ -21,8 +21,7 @@ export function useToast(): UseToastReturn {
     titleTextStyle: { color: foreground, marginTop: 12 },
     descTextStyle: { color: secondaryForeground, marginBottom: 12 },
     backgroundColor: background,
-    timeColor: 'transparent',
-    statusBarHidden: true
+    timeColor: 'transparent'
   } as const;
 
   return {
@@ -35,7 +34,8 @@ export function useToast(): UseToastReturn {
         text: description,
         timing: duration,
         icon: <Icon as={Check} size={24} className="mt-2" />,
-        position
+        position,
+        statusBarHidden: position === 'top'
       });
     },
     error: (text, config) => {
@@ -47,7 +47,8 @@ export function useToast(): UseToastReturn {
         text: description,
         timing: duration,
         icon: <Icon as={X} size={24} className="mt-2" />,
-        position
+        position,
+        statusBarHidden: position === 'top'
       });
     }
   };

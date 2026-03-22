@@ -4,17 +4,17 @@ import { AlertCircleIcon } from 'lucide-react-native';
 import { Platform, TouchableOpacity, View } from 'react-native';
 
 import { cn } from '@/lib/utils';
-import { ConnectStatus, settings as settingsAtom } from '@/store/settings';
+import { settings as settingsAtom } from '@/store/settings';
 
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Text } from './ui/text';
 
 export function ConnectTips(props: { className?: string }) {
   const { className } = props;
-  const { ollama } = useAtomValue(settingsAtom);
+  const { host } = useAtomValue(settingsAtom);
   const router = useRouter();
 
-  if (ollama.connectStatus === ConnectStatus.SUCCESSFUL) return null;
+  if (host) return null;
 
   return (
     <View className={className}>

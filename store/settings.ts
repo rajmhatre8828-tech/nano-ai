@@ -1,49 +1,29 @@
-import type { ModelResponse } from 'ollama';
-
 import { useSetStorageAtom, useStorageAtom, useStorageAtomValue } from '@/hooks/use-storage-atom';
-import { DEFAULT_CUSTOM_HOST } from '@/lib/constants';
+import { AIProviderEnum } from '@/lib/ai';
 import { createStorageAtom, StorageKey } from '@/lib/local-storage';
 import { withImmer } from '@/lib/utils';
 
-export enum ConnectStatus {
-  FAILED,
-  SUCCESSFUL,
-  DEFAULT
-}
-
-export enum ServerType {
-  CUSTOM_HOST = 'custom_host',
-  OLLAMA_CLOUD = 'ollama_cloud',
-  OPEN_AI = 'open_ai'
-}
-
-export interface Model extends ModelResponse {
+export interface Model {
+  name: string;
   canThink?: boolean;
 }
 
 export interface Settings {
-  ollama: {
-    serverType: ServerType;
-    connectStatus: ConnectStatus;
-    models: Model[];
-    defaultModel?: Model;
-    host: string;
-    hostList: { value: string; isLastUsed: boolean }[];
-    apiKey?: string;
-    apiKeyList: { value: string; isLastUsed: boolean }[];
-  };
+  provider: AIProviderEnum;
+  host: string;
+  apiKey: string;
+  hostList: { value: string; isLastUsed: boolean }[];
+  apiKeyList: { value: string; isLastUsed: boolean }[];
+  defaultModel?: Model;
   hapticFeedback: boolean;
 }
 
 export const settings = createStorageAtom(StorageKey.SETTINGS, {
-  ollama: {
-    serverType: ServerType.CUSTOM_HOST,
-    host: DEFAULT_CUSTOM_HOST,
-    connectStatus: ConnectStatus.DEFAULT,
-    models: [],
-    hostList: [],
-    apiKeyList: []
-  },
+  provider: AIProviderEnum.OLLAMA,
+  host: '',
+  apiKey: '',
+  hostList: [],
+  apiKeyList: [],
   hapticFeedback: true
 } as Settings);
 

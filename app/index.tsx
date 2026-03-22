@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { Edit, MoonStarIcon, Sidebar, SunIcon } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useEffect, useRef } from 'react';
-import { AppState, Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, View } from 'react-native';
 import ReanimatedDrawerLayout, { DrawerLayoutMethods } from 'react-native-gesture-handler/ReanimatedDrawerLayout';
 
 import { ConnectTips } from '@/components/connect-tips';
@@ -13,14 +13,13 @@ import { MessageList } from '@/components/message-list';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { useChat } from '@/hooks/use-chat';
 import { useLiveActivity } from '@/hooks/use-live-activity';
-import { useMessage } from '@/hooks/use-message';
-import { useModel } from '@/hooks/use-model';
-import { useOllama } from '@/hooks/use-ollama';
+import { useModels } from '@/hooks/use-models';
 import { STOP_LIVE_ACTIVITY_ACTION_TARGET } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { useChats } from '@/store/chats';
-import { ConnectStatus, useSettingsValue } from '@/store/settings';
+import { useChatList } from '@/store/chats';
+import { useSettingsValue } from '@/store/settings';
 
 const LOGO = {
   light: require('@/assets/images/logo.png'),
@@ -39,46 +38,24 @@ const IMAGE_STYLE = {
 
 export default function Index() {
   const { colorScheme } = useColorScheme();
-  const { start: startLiveActivity, stop: stopLiveActivity, update: updateLiveActivity, running } = useLiveActivity();
-  const [{ current, data }] = useChats();
-  const [messages] = useMessage();
+  const { start: startLiveActivity, stop: stopLiveActivity, running } = useLiveActivity();
+  const [{ current, data }] = useChatList();
   const drawerRef = useRef<DrawerLayoutMethods>(null);
-  const { request, abort } = useOllama();
+  const { messages, sendMessage, stop } = useChat();
   const requestAbortMap = useRef<Record<string, () => void>>({});
-  const lastStateRef = useRef(AppState.currentState);
 
   const handleSend = async (input: string, think?: boolean) => {
     if (running) stopLiveActivity();
 
-    requestAbortMap.current[current] = abort;
+    requestAbortMap.current[current] = stop;
     startLiveActivity(input, data[current].model!.name);
-    await request(input, think);
+    await sendMessage(input, think);
   };
+
   const handleAbort = () => {
     requestAbortMap.current[current]?.call(null);
     stopLiveActivity();
   };
-
-  useEffect(() => {
-    if (messages.length > 1) {
-      updateLiveActivity(messages.at(-1)!);
-      if (lastStateRef.current === 'active' && messages.at(-1)?.isAborted) {
-        stopLiveActivity();
-      }
-    }
-
-    const sub = AppState.addEventListener('change', next => {
-      if (lastStateRef.current === 'background' && next === 'active' && messages.length > 1) {
-        const { isStreaming, isPending, isThinking, isAborted } = messages.at(-1)!;
-        if (!isStreaming && !isPending && !isThinking && !isAborted) {
-          stopLiveActivity();
-        }
-      }
-      lastStateRef.current = next;
-    });
-
-    return () => sub.remove();
-  }, [messages]);
 
   useEffect(() => {
     const sub = Linking.addEventListener('url', ({ url }) => {
@@ -111,7 +88,7 @@ export default function Index() {
         />
         {messages.length > 0 ? (
           <KeyboardAvoidingView behavior="padding" className="flex flex-1 flex-col items-center justify-center">
-            <MessageList messages={messages} />
+            <MessageList data={messages} />
             <View className="pb-safe px-safe-offset-4 w-full pt-2">
               <ConnectTips className="mb-4" />
               <MainInput onSend={handleSend} onAbort={handleAbort} />
@@ -136,11 +113,10 @@ export default function Index() {
 function Header(props: { handlePressSidebarIcon: () => void }) {
   const { handlePressSidebarIcon } = props;
   const { colorScheme, toggleColorScheme } = useColorScheme();
-  const { ollama } = useSettingsValue();
-  const { connectStatus } = ollama;
-  const [messages] = useMessage();
-  const [, { create }] = useChats();
-  const [model] = useModel();
+  const { host } = useSettingsValue();
+  const { messages } = useChat();
+  const [, { create }] = useChatList();
+  const { currentModel } = useModels();
   const router = useRouter();
 
   return (
@@ -156,9 +132,9 @@ function Header(props: { handlePressSidebarIcon: () => void }) {
           {messages.length > 0 ? <Image source={LOGO[colorScheme ?? 'light']} resizeMode="contain" className="mb-1 size-6" /> : null}
           <Text className="text-base font-medium">Nano AI</Text>
         </View>
-        <TouchableOpacity disabled={connectStatus !== ConnectStatus.SUCCESSFUL} onPress={() => router.push('/models')}>
-          <Text style={{ fontFamily: 'Google_Sans_Code' }} className={cn('text-xs', connectStatus === ConnectStatus.SUCCESSFUL ? 'text-muted-foreground' : 'text-gray-300')}>
-            {model ? model.name : 'select model...'}
+        <TouchableOpacity disabled={!host} onPress={() => router.push('/models')}>
+          <Text style={{ fontFamily: 'Google_Sans_Code' }} className={cn('text-xs', host ? 'text-muted-foreground' : 'text-gray-300')}>
+            {currentModel ? currentModel.name : 'select model...'}
           </Text>
         </TouchableOpacity>
       </View>

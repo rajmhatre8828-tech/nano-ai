@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Keyboard, View } from 'react-native';
 
 import { cn } from '@/lib/utils';
-import { useChats } from '@/store/chats';
-import { ConnectStatus, useSettingsValue } from '@/store/settings';
+import { useChatList } from '@/store/chats';
+import { useSettingsValue } from '@/store/settings';
 
 import { Button } from './ui/button';
 import { Icon } from './ui/icon';
@@ -15,9 +15,8 @@ import { Toggle } from './ui/toggle';
 export function MainInput(props: { onSend: (input: string, think?: boolean) => Promise<void>; onAbort: () => void }) {
   const { onSend, onAbort } = props;
   const [input, setInput] = useState('');
-  const { ollama, hapticFeedback } = useSettingsValue();
-  const { connectStatus } = ollama;
-  const [{ current, data }, { toggleThink }] = useChats();
+  const { host, hapticFeedback } = useSettingsValue();
+  const [{ current, data }, { toggleThink }] = useChatList();
   const { think, model, messages } = data[current];
   const inChatting = useMemo(() => {
     if (messages.length > 0) {
@@ -66,7 +65,7 @@ export function MainInput(props: { onSend: (input: string, think?: boolean) => P
             <View className="size-3 rounded-[2px] bg-primary-foreground" />
           </Button>
         ) : (
-          <Button size="icon" className="size-9 rounded-full" disabled={!input || !model || connectStatus !== ConnectStatus.SUCCESSFUL} onPress={handleSend}>
+          <Button size="icon" className="size-9 rounded-full" disabled={!input || !model || !host} onPress={handleSend}>
             <Icon as={ArrowUpIcon} className="size-4 text-primary-foreground" />
           </Button>
         )}

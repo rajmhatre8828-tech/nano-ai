@@ -1,10 +1,8 @@
-import type { ModelResponse } from 'ollama';
-
 import { useStorageAtom } from '@/hooks/use-storage-atom';
 import { createStorageAtom, StorageKey } from '@/lib/local-storage';
 import { withImmer } from '@/lib/utils';
 
-import { useSettingsValue } from './settings';
+import { type Model, useSettingsValue } from './settings';
 
 export interface MessageStatus {
   isPending: boolean;
@@ -20,30 +18,34 @@ export interface Message extends Partial<MessageStatus> {
   updateAt?: number;
   thinkingContent?: string;
   thinkingDuration?: number;
+  cost?: {
+    time: number;
+    tokens: number;
+  };
 }
 
 export interface Chat {
   messages: Message[];
-  model?: ModelResponse & { canThink?: boolean };
+  model?: Model;
   think?: boolean;
 }
 
 export const chats = createStorageAtom(StorageKey.CHATS_HISTORY, { current: 0, data: [{ messages: [] }] as Chat[] });
 
-export function useChats() {
+export function useChatList() {
   const [_chats, _setChats] = useStorageAtom(chats);
-  const { ollama } = useSettingsValue();
+  const { defaultModel } = useSettingsValue();
   const set = withImmer(_setChats);
 
   const create = () => {
     set(chats => {
       if (chats.data.length === 0 || chats.data.at(-1)?.messages.length) {
-        chats.data.push({ messages: [], model: ollama.defaultModel });
+        chats.data.push({ messages: [], model: defaultModel });
       }
 
       if (chats.current !== chats.data.length - 1) {
         chats.current = chats.data.length - 1;
-        chats.data[chats.current].model = ollama.defaultModel;
+        chats.data[chats.current].model = defaultModel;
       }
     });
   };
@@ -53,12 +55,12 @@ export function useChats() {
       chats.data.splice(index, 1);
 
       if (chats.data.length === 0 || chats.data.at(-1)?.messages.length) {
-        chats.data.push({ messages: [], model: ollama.defaultModel });
+        chats.data.push({ messages: [], model: defaultModel });
       }
 
       if (chats.current !== chats.data.length - 1) {
         chats.current = chats.data.length - 1;
-        chats.data[chats.current].model = ollama.defaultModel;
+        chats.data[chats.current].model = defaultModel;
       }
     });
   };

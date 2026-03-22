@@ -5,7 +5,7 @@ import { type GestureResponderEvent, SectionList, View } from 'react-native';
 
 import { cn, isInThisWeek, isInToday } from '@/lib/utils';
 import type { Chat } from '@/store/chats';
-import { useChats } from '@/store/chats';
+import { useChatList } from '@/store/chats';
 
 import { Button } from './ui/button';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuShortcut, ContextMenuTrigger } from './ui/context-menu';
@@ -17,7 +17,7 @@ type HistorySection = (Chat & { index: number; latestTs: number })[];
 export function DrawerContent(props: { close: () => void }) {
   const { close } = props;
   const router = useRouter();
-  const [chats, { create, switchTo, remove }] = useChats();
+  const [chats, { create, switchTo, remove }] = useChatList();
   const { current: currentIndex, data } = chats;
   const historyData = useMemo(() => {
     const today: HistorySection = [];

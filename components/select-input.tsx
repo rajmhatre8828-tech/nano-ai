@@ -1,7 +1,11 @@
 import type { ContentProps } from '@rn-primitives/popover';
 import type { TriggerRef } from '@rn-primitives/popover';
+import * as Haptics from 'expo-haptics';
 import { type ComponentProps, type ReactNode, useRef } from 'react';
 import { type GestureResponderEvent, Pressable, View } from 'react-native';
+
+import { cn } from '@/lib/utils';
+import { useSettingsValue } from '@/store/settings';
 
 import { Input } from './ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -14,30 +18,36 @@ interface SelectOption {
 
 export interface SelectInputProps<T> extends ComponentProps<typeof Input> {
   options?: T[];
-  onPressItem?: (event: GestureResponderEvent) => void;
+  onPressItem?: (event: GestureResponderEvent, value: string) => void;
   renderItem?: (option: T) => ReactNode;
   contentProps?: ContentProps;
   emptyView?: ReactNode;
+  children?: ReactNode;
 }
 
 export function SelectInput<T extends SelectOption>(props: SelectInputProps<T>) {
-  const { options = [], renderItem, onPressItem, contentProps, emptyView, ...inputProps } = props;
+  const { options = [], renderItem, onPressItem, contentProps, emptyView, children, ...inputProps } = props;
+  const { className, ...others } = contentProps || {};
   const ref = useRef<TriggerRef>(null);
+  const { hapticFeedback } = useSettingsValue();
 
   return (
     <Popover>
       <PopoverTrigger ref={ref} asChild>
-        <Input {...inputProps} />
+        {children ? children : <Input {...inputProps} />}
       </PopoverTrigger>
-      <PopoverContent className="w-full p-1" {...contentProps}>
+      <PopoverContent className={cn('w-full p-1', className)} {...others}>
         {options.length > 0 ? (
           options.map(opt => {
             return (
               <Pressable
                 key={opt.value}
-                className="flex flex-row items-center justify-between rounded-sm px-4 py-2 active:bg-accent"
+                className="flex flex-row items-center justify-between rounded-sm px-2 py-1 active:bg-accent"
                 onPress={e => {
-                  onPressItem?.(e);
+                  if (hapticFeedback) {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  onPressItem?.(e, opt.value);
                   inputProps.onChangeText?.(opt.value);
                   ref.current?.close();
                 }}>
