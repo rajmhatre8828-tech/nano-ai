@@ -72,7 +72,7 @@ const buttonTextVariants = cva(cn('text-sm font-medium text-foreground', Platfor
 
 type ButtonProps = React.ComponentProps<typeof Pressable> & React.RefAttributes<typeof Pressable> & VariantProps<typeof buttonVariants>;
 
-function Button({ className, variant, size, onPress, onLongPress, ...props }: ButtonProps) {
+function Button({ className, variant, size, onPress, ...props }: ButtonProps) {
   const [{ hapticFeedback }] = useSettings();
 
   return (
@@ -80,12 +80,6 @@ function Button({ className, variant, size, onPress, onLongPress, ...props }: Bu
       <Pressable
         className={cn(props.disabled && 'opacity-50', buttonVariants({ variant, size }), className)}
         role="button"
-        onLongPress={e => {
-          if (hapticFeedback) {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          }
-          onLongPress?.(e);
-        }}
         onPress={e => {
           if (hapticFeedback) {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

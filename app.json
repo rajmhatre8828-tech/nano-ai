@@ -13,15 +13,24 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.nano-ai",
       "infoPlist": {
-        "NSSupportsLiveActivities": true
+        "NSSupportsLiveActivities": true,
+        "NSMicrophoneUsageDescription": "We need access to your microphone for voice input",
+        "NSSpeechRecognitionUsageDescription": "We need access to speech recognition for voice input"
       }
     },
-    "plugins": ["expo-router", "expo-font", "@bacons/apple-targets"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "@bacons/apple-targets",
+      "expo-speech-recognition"
+    ],
     "experiments": {
       "typedRoutes": true
     },
