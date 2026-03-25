@@ -17,7 +17,7 @@ export function System() {
   const ref = useRef<TriggerRef>(null);
   const { colorScheme, setColorScheme } = useColorScheme();
   const [settings, setSettings] = useSettings();
-  const { hapticFeedback } = settings;
+  const { hapticFeedback, tokensUsage = 0 } = settings;
 
   return (
     <SettingSection title="System">
@@ -56,6 +56,10 @@ export function System() {
             });
           }}
         />
+      </View>
+      <View className="mt-1 flex flex-row items-center">
+        <Text className="flex-1 font-medium">Tokens Usage</Text>
+        <Text className="text-muted-foreground">{tokensUsage.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</Text>
       </View>
     </SettingSection>
   );

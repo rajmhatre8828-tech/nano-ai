@@ -14,6 +14,7 @@ export interface Settings {
   apiKeyList: { value: string; isLastUsed: boolean }[];
   defaultModel?: Model;
   hapticFeedback: boolean;
+  tokensUsage: number;
 }
 
 export const settings = createStorageAtom(StorageKey.SETTINGS, {
@@ -22,5 +23,6 @@ export const settings = createStorageAtom(StorageKey.SETTINGS, {
   apiKey: '',
   hostList: [],
   apiKeyList: [],
-  hapticFeedback: true
+  hapticFeedback: true,
+  tokensUsage: 0
 } as Settings);
