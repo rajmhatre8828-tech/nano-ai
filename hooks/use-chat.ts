@@ -1,161 +1,222 @@
-import type { ModelMessage } from 'ai';
-import { useCallback, useRef, useState } from 'react';
+import type { LanguageModelUsage, ModelMessage, TextStreamPart, ToolSet } from 'ai';
+import { useMemo, useRef, useState } from 'react';
 
-import { AIRegistry, chat } from '@/lib/ai';
-import { type Message, useSessions } from '@/store/sessions';
-import { useSettingsValue } from '@/store/settings';
+import { useSessions } from '@/hooks/use-sessions';
+import { useSettings } from '@/hooks/use-settings';
+import { AIProviderEnum, AIRegistry, chat } from '@/lib/ai';
+import type { UIMessage } from '@/store/sessions';
 
-export function useChat() {
-  const abortFnRef = useRef<() => void>(null);
-  const settings = useSettingsValue();
-  const [error, setError] = useState<Error>();
-  const [{ current, data }, { set: setSessions }] = useSessions();
-  const { model, messages = [] } = data[current] || {};
+interface OnFinishedOptions {
+  isAbort: boolean;
+  isError: boolean;
+  messages: UIMessage[];
+  finishReason?: 'stop' | 'length' | 'content-filter' | 'tool-calls' | 'error' | 'other';
+  totalUsage?: LanguageModelUsage;
+}
 
-  const chatWithAI = useCallback(
-    (message: string) => {
-      const { provider, host, apiKey } = settings;
-      const { name: modelName } = model!;
-      const registry = new AIRegistry(host, apiKey);
+export interface UseChatOptions {
+  onFinished?: (options: OnFinishedOptions) => void;
+  onError?: (error: Error) => void;
+  onData?: (part: TextStreamPart<ToolSet>) => void;
+}
 
-      return chat({
-        model: registry.model(`${provider}:${modelName}`),
-        messages: [...messages, { role: 'user', content: message }].map(({ role, content }) => ({ role, content })) as ModelMessage[],
-        stream: true
-      });
-    },
-    [messages, settings, model]
-  );
+export function useChat(options?: UseChatOptions) {
+  const { onData, onError, onFinished } = options || {};
+  const [settings] = useSettings();
+  const { current, currentSession, setSessions } = useSessions();
+  const { think = false, model, messages = [] } = currentSession || {};
+  const [error, setError] = useState<Error | null>(null);
+  const languageModel = useMemo(() => {
+    const { provider = AIProviderEnum.OLLAMA, host, apiKey } = settings;
+    const { name: modelName, canThink = false } = model || {};
+    const reasoning = canThink ? think : false;
 
-  const updateMessage = useCallback(
-    (updater: (msg: Message) => void) => {
+    return new AIRegistry(host, apiKey).model(`${provider}:${modelName}`, {
+      [AIProviderEnum.OLLAMA]: { think: reasoning },
+      [AIProviderEnum.ANTHROPIC]: { thinking: { type: reasoning ? 'enabled' : 'disabled', budgetTokens: 12000 } },
+      [AIProviderEnum.OPENAI]: { reasoningEffort: reasoning ? 'high' : 'none' },
+      [AIProviderEnum.GOOGLE]: { thinkingConfig: reasoning ? { thinkingLevel: 'high' } : {} },
+      [AIProviderEnum.CUSTOM]: {}
+    });
+  }, [settings, think, model]);
+  const stopRef = useRef<() => void>(null);
+
+  const createUpdater = (index?: number) => {
+    return (patch: (msg: UIMessage) => void) => {
       setSessions(sessions => {
         const msgs = sessions.data[current].messages;
-        const lastMsg = msgs[msgs.length - 1];
-        updater(lastMsg);
+        const targetMsg = msgs[index ?? msgs.length - 1];
+
+        patch(targetMsg);
       });
-    },
-    [current]
-  );
-
-  const sendMessage = async (input: string) => {
-    const createAt = +new Date();
-    const userMessage: Message = { role: 'user', content: input, createAt };
-    const assistantMessage: Message = {
-      role: 'assistant',
-      content: '',
-      createAt,
-      thinkingContent: '',
-      isPending: true,
-      isStreaming: false
     };
+  };
 
-    setSessions(sessions => {
-      sessions.data[current].messages = [...sessions.data[current].messages, userMessage, assistantMessage];
-    });
+  const createChatWithAI = (index?: number) => {
+    return (message: string) => {
+      return chat({
+        model: languageModel,
+        messages: [...messages.slice(0, index ?? messages.length), { role: 'user', content: message }].map(({ role, content }) => ({ role, content })) as ModelMessage[],
+        stream: true
+      });
+    };
+  };
 
-    const [stream, abort] = chatWithAI(input);
-    const startTime = +new Date();
-    let startThinkingTime = +new Date();
+  const processing = async (input: string, index?: number) => {
+    try {
+      const updater = createUpdater(index);
+      const chatWithAI = createChatWithAI(index);
 
-    for await (const part of stream) {
-      const { type } = part;
+      const [stream, abort] = chatWithAI(input);
+      const startTime = +new Date();
+      let startThinkingTime = +new Date();
 
-      switch (type) {
-        case 'start': {
-          abortFnRef.current = () => abort();
+      for await (const part of stream) {
+        onData?.(part);
+        const { type } = part;
 
-          break;
-        }
-        case 'reasoning-start': {
-          startThinkingTime = +new Date();
-          updateMessage(msg => {
-            msg.isPending = false;
-            msg.isThinking = true;
-          });
-
-          break;
-        }
-        case 'reasoning-delta': {
-          const { text } = part;
-          updateMessage(msg => {
-            msg.thinkingContent = (msg.thinkingContent || '') + text;
-          });
-
-          break;
-        }
-        case 'reasoning-end': {
-          updateMessage(msg => {
-            msg.isThinking = false;
-            msg.thinkingDuration = +new Date() - startThinkingTime;
-          });
-
-          break;
-        }
-        case 'text-start': {
-          updateMessage(msg => {
-            msg.isPending = false;
-            msg.isStreaming = true;
-          });
-
-          break;
-        }
-        case 'text-delta': {
-          const { text } = part;
-          updateMessage(msg => {
-            msg.content = (msg.content || '') + text;
-          });
-
-          break;
-        }
-        case 'text-end': {
-          updateMessage(msg => {
-            msg.isStreaming = false;
-          });
-
-          break;
-        }
-        case 'abort': {
-          updateMessage(msg => {
-            msg.isAborted = true;
-          });
-
-          break;
-        }
-        case 'error': {
-          const { error } = part;
-          updateMessage(msg => {
-            msg.isAborted = true;
-          });
-          setError(new Error('Please check your API endpoint and try again', { cause: `${error}` }));
-
-          break;
-        }
-        case 'finish': {
-          const { finishReason, totalUsage } = part;
-          updateMessage(msg => {
-            msg.cost = {
-              time: +new Date() - startTime,
-              tokens: totalUsage.totalTokens || 0
+        switch (type) {
+          case 'start':
+            stopRef.current = () => {
+              updater(msg => {
+                msg.isPending = false;
+                msg.isAborted = true;
+                msg.isStreaming = false;
+              });
+              abort();
+              onFinished?.({ isAbort: false, isError: false, messages });
             };
-          });
-          if (finishReason !== 'stop') {
-            setError(new Error('Network error', { cause: `Stream terminated by ${finishReason}` }));
-          }
 
-          break;
+            break;
+          case 'reasoning-start':
+            startThinkingTime = +new Date();
+            updater(msg => {
+              msg.isPending = false;
+              msg.isThinking = true;
+            });
+
+            break;
+          case 'reasoning-delta':
+            updater(msg => {
+              msg.thinkingContent = (msg.thinkingContent || '') + part.text;
+            });
+
+            break;
+          case 'reasoning-end':
+            updater(msg => {
+              msg.isThinking = false;
+              msg.thinkingDuration = +new Date() - startThinkingTime;
+            });
+
+            break;
+          case 'text-start':
+            updater(msg => {
+              msg.isPending = false;
+              msg.isStreaming = true;
+            });
+
+            break;
+          case 'text-delta':
+            updater(msg => {
+              msg.content = (msg.content || '') + part.text;
+            });
+
+            break;
+          case 'text-end':
+            updater(msg => {
+              msg.isStreaming = false;
+            });
+
+            break;
+          case 'abort':
+            updater(msg => {
+              msg.isAborted = true;
+            });
+            onFinished?.({ isAbort: true, isError: false, messages });
+
+            break;
+          case 'error':
+            updater(msg => {
+              msg.isAborted = true;
+            });
+            onFinished?.({ isAbort: false, isError: true, messages });
+            handleError(part.error as Error);
+
+            break;
+          case 'finish': {
+            const { finishReason, totalUsage } = part;
+            updater(msg => {
+              msg.cost = {
+                time: +new Date() - startTime,
+                tokens: totalUsage.totalTokens || 0
+              };
+            });
+            if (part.finishReason === 'error') {
+              const error = new Error('Network error', { cause: `Stream terminated by ${finishReason}` });
+              handleError(error);
+            }
+            onFinished?.({ isAbort: false, isError: finishReason === 'error', messages, finishReason, totalUsage });
+
+            break;
+          }
         }
       }
+    } catch (error) {
+      handleError(error as Error);
     }
   };
 
-  const stop = () => {
-    updateMessage(msg => {
-      msg.isPending = false;
-      msg.isAborted = true;
+  const sendMessage = async (input: string) => {
+    const createAt = +new Date();
+    setSessions(sessions => {
+      sessions.data[current].messages = [
+        ...sessions.data[current].messages,
+        { role: 'user', content: input, createAt },
+        {
+          role: 'assistant',
+          content: '',
+          createAt,
+          thinkingContent: '',
+          isPending: true,
+          isStreaming: false
+        }
+      ];
     });
-    abortFnRef.current?.();
+
+    await processing(input);
   };
 
-  return { messages, sendMessage, stop, error };
+  const regenerate = async (index: number) => {
+    setSessions(sessions => {
+      sessions.data[sessions.current].messages[index] = {
+        role: 'assistant',
+        content: '',
+        createAt: +new Date(),
+        thinkingContent: '',
+        isPending: true,
+        isStreaming: false
+      };
+    });
+
+    const input = messages[index - 1].content;
+    await processing(input, index);
+  };
+
+  const handleError = (error: Error) => {
+    setError(error);
+    onError?.(error);
+  };
+
+  const clearError = () => {
+    setError(null);
+  };
+
+  return {
+    messages,
+    error,
+    sendMessage,
+    stop: () => stopRef.current?.(),
+    regenerate,
+    clearError
+  };
 }

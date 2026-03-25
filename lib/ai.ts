@@ -47,9 +47,10 @@ export class AIRegistry {
     });
   }
 
-  model<const PROVIDER_ID extends AIProviderEnum>(id: PROVIDER_ID extends string ? `${PROVIDER_ID}:${ProviderModels[PROVIDER_ID]}` : never, providerOptions?: ProviderOptions[PROVIDER_ID]): LanguageModel;
-  model<const PROVIDER_ID extends AIProviderEnum>(id: PROVIDER_ID extends string ? `${PROVIDER_ID}:${string}` : never, providerOptions?: ProviderOptions[PROVIDER_ID]): LanguageModel;
-  model<const PROVIDER_ID extends AIProviderEnum>(id: `${PROVIDER_ID}:${string}`, providerOptions?: ProviderOptions[PROVIDER_ID]) {
+  model<const PROVIDER_ID extends AIProviderEnum>(id: PROVIDER_ID extends string ? `${PROVIDER_ID}:${ProviderModels[PROVIDER_ID]}` : never, providerOptions?: ProviderOptions): LanguageModel;
+  // eslint-disable-next-line @typescript-eslint/unified-signatures
+  model<const PROVIDER_ID extends AIProviderEnum>(id: PROVIDER_ID extends string ? `${PROVIDER_ID}:${string}` : never, providerOptions?: ProviderOptions): LanguageModel;
+  model<const PROVIDER_ID extends AIProviderEnum>(id: `${PROVIDER_ID}:${string}`, providerOptions?: ProviderOptions) {
     return wrapLanguageModel({
       model: this.registry.languageModel(id satisfies string),
       middleware: defaultSettingsMiddleware({

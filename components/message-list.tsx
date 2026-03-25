@@ -1,4 +1,4 @@
-import { ArrowDown, Lightbulb } from 'lucide-react-native';
+import { AlertCircleIcon, ArrowDown, Lightbulb, RefreshCcw } from 'lucide-react-native';
 import { useMemo, useRef } from 'react';
 import { ScrollView, View } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
@@ -6,10 +6,11 @@ import { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useScrollToEnd } from '@/hooks/use-scroll-to-end';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useUpdateLayoutEffect } from '@/hooks/use-update-effect';
-import type { Message } from '@/store/sessions';
+import type { UIMessage } from '@/store/sessions';
 
 import { Copy } from './copy';
 import { Markdown } from './markdown';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
 import { Icon } from './ui/icon';
 import { NativeOnlyAnimatedView } from './ui/native-only-animated-view';
@@ -17,16 +18,14 @@ import { Separator } from './ui/separator';
 import { Spinner } from './ui/spinner';
 import { Text } from './ui/text';
 
-export function MessageList(props: { data: Message[] }) {
-  const { data } = props;
+export function MessageList(props: { data: UIMessage[]; onRegenerate: (index: number) => void; error: Error | null }) {
+  const { data, error, onRegenerate } = props;
   const { mutedForeground } = useThemeColor();
   const { scroller, scrollToEnd, handleScroll, handleLayout, handleContentSizeChange, isAtEnd } = useScrollToEnd(200);
   const autoScrollEnabled = useRef(true);
   const inChatting = useMemo(() => {
     if (data.length > 0) {
-      const { isPending = false, isStreaming = false, isThinking = false, isAborted = false } = data.at(-1)!;
-
-      return (isPending || isStreaming || isThinking) && !isAborted;
+      return data.some(({ isPending = false, isStreaming = false, isThinking = false, isAborted = false }) => (isPending || isStreaming || isThinking) && !isAborted);
     }
 
     return false;
@@ -57,7 +56,7 @@ export function MessageList(props: { data: Message[] }) {
           handleContentSizeChange(...args);
         }}>
         <View className="px-safe-offset-4 flex flex-1 gap-y-4">
-          {data.map(({ role, content, thinkingContent, thinkingDuration, isPending, isThinking, isStreaming, isAborted, cost }, index) => {
+          {data.map(({ role, content, thinkingContent, thinkingDuration, isPending, isThinking, isStreaming, cost }, index) => {
             if (role === 'user') {
               return (
                 <View key={index} className="flex w-full scroll-mt-5 flex-row justify-end">
@@ -92,26 +91,32 @@ export function MessageList(props: { data: Message[] }) {
                   </>
                 ) : null}
                 <Markdown content={content} style={{ lineHeight: 24 }} />
-                {isStreaming || isThinking || isPending || isAborted ? null : (
+                {isStreaming || isThinking || isPending ? null : (
                   <View className="flex flex-row items-center gap-x-1">
                     {cost?.time ? (
                       <>
                         <Text className="text-sm tabular-nums text-muted-foreground">{cost.time / 1000} s</Text>
                         <Separator orientation="vertical" className="mx-1 h-4" />
-                      </>
-                    ) : null}
-                    {cost?.time ? (
-                      <>
                         <Text className="text-sm tabular-nums text-muted-foreground">{cost.tokens.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')} tokens</Text>
-                        <Separator orientation="vertical" className="mx-1 h-4" />
+                        <Separator orientation="vertical" className="ml-1 h-4" />
                       </>
                     ) : null}
-                    <Copy className="-ml-2 w-10 text-muted-foreground" content={content} iconSize={16} showText={false} />
+                    <Copy className="w-10 text-muted-foreground" content={content} iconSize={16} showText={false} />
+                    <Separator orientation="vertical" className="h-4" />
+                    <Button variant="ghost" size="icon" onPress={() => onRegenerate(index)}>
+                      <Icon as={RefreshCcw} size={16} />
+                    </Button>
                   </View>
                 )}
               </View>
             );
           })}
+          {error ? (
+            <Alert variant="destructive" icon={AlertCircleIcon}>
+              <AlertTitle>{error.name}</AlertTitle>
+              <AlertDescription style={{ fontFamily: 'Google_Sans_Code' }}>{'responseBody' in error ? JSON.stringify(JSON.parse(error.responseBody as string), null, 2) : error.message}</AlertDescription>
+            </Alert>
+          ) : null}
         </View>
       </ScrollView>
       {isAtEnd ? null : (
