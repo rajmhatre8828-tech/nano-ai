@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import { AppState } from 'react-native';
 
 import { areLiveActivitiesEnabled, isLiveActivityRunning, startLiveActivity, stopLiveActivity, updateLiveActivity } from '@/modules/activity-controller';
-import type { Message } from '@/store/sessions';
+import type { UIMessage } from '@/store/sessions';
 
 import { useChat } from './use-chat';
 
@@ -30,7 +30,7 @@ export function useLiveActivity() {
     await stopLiveActivity();
   };
 
-  const update = async (data: Message) => {
+  const update = async (data: UIMessage) => {
     if (Platform.OS !== 'ios') return;
 
     if (!isLiveActivityRunning()) return;

@@ -2,9 +2,9 @@ import * as Linking from 'expo-linking';
 import { Github, History, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 
+import { useSessions } from '@/hooks/use-sessions';
 import { useSettings } from '@/hooks/use-settings';
 import { PROJECT_GITHUB_URL } from '@/lib/constants';
-import { useSessions } from '@/store/sessions';
 
 import { SettingSection } from '../setting-section';
 import { Button } from '../ui/button';
@@ -14,7 +14,7 @@ import { Text } from '../ui/text';
 
 export function Actions() {
   const [, setSettings] = useSettings();
-  const [, { clear }] = useSessions();
+  const { clearSessions } = useSessions();
   const [open, setOpen] = useState(false);
 
   const handleViewOnGithub = async () => {
@@ -44,7 +44,7 @@ export function Actions() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="destructive">
-            <Text>Delete All Conversations</Text>
+            <Text>Delete All Sessions</Text>
             <Icon as={Trash2} size={16} className="text-white" />
           </Button>
         </DialogTrigger>
@@ -61,7 +61,7 @@ export function Actions() {
             </DialogClose>
             <Button
               onPress={() => {
-                clear();
+                clearSessions();
                 setOpen(false);
               }}>
               <Text>Delete</Text>

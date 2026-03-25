@@ -16,10 +16,10 @@ import { Text } from '@/components/ui/text';
 import { useChat } from '@/hooks/use-chat';
 import { useLiveActivity } from '@/hooks/use-live-activity';
 import { useModels } from '@/hooks/use-models';
+import { useSessions } from '@/hooks/use-sessions';
 import { useSettings } from '@/hooks/use-settings';
 import { STOP_LIVE_ACTIVITY_ACTION_TARGET } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { useSessions } from '@/store/sessions';
 
 const LOGO = {
   light: require('@/assets/images/logo.png'),
@@ -39,17 +39,33 @@ const IMAGE_STYLE = {
 export default function Index() {
   const { colorScheme } = useColorScheme();
   const { start: startLiveActivity, stop: stopLiveActivity, running } = useLiveActivity();
-  const [{ current, data }] = useSessions();
+  const [, setSettings] = useSettings();
+  const { current, currentSession } = useSessions();
   const drawerRef = useRef<DrawerLayoutMethods>(null);
-  const { messages, sendMessage, stop } = useChat();
+  const { messages, error, sendMessage, stop, regenerate, clearError } = useChat({
+    onFinished: ({ totalUsage }) => {
+      if (totalUsage) {
+        setSettings(settings => {
+          settings.tokensUsage += totalUsage.totalTokens || 0;
+        });
+      }
+    }
+  });
   const requestAbortMap = useRef<Record<string, () => void>>({});
 
-  const handleSend = async (input: string, think?: boolean) => {
+  const handleSend = async (input: string) => {
     if (running) stopLiveActivity();
 
     requestAbortMap.current[current] = stop;
-    startLiveActivity(input, data[current].model!.name);
-    await sendMessage(input, think);
+    startLiveActivity(input, currentSession.model!.name);
+    clearError();
+    await sendMessage(input);
+  };
+
+  const handleRegenerate = async (index: number) => {
+    requestAbortMap.current[current] = stop;
+    clearError();
+    await regenerate(index);
   };
 
   const handleAbort = () => {
@@ -68,6 +84,10 @@ export default function Index() {
 
     return () => sub.remove();
   }, []);
+
+  useEffect(() => {
+    clearError();
+  }, [current]);
 
   return (
     <ReanimatedDrawerLayout
@@ -88,7 +108,7 @@ export default function Index() {
         />
         {messages.length > 0 ? (
           <KeyboardAvoidingView behavior="padding" className="flex flex-1 flex-col items-center justify-center">
-            <MessageList data={messages} />
+            <MessageList data={messages} error={error} onRegenerate={handleRegenerate} />
             <View className="pb-safe px-safe-offset-4 w-full pt-2">
               <ConnectTips className="mb-4" />
               <MainInput onSend={handleSend} onAbort={handleAbort} />
@@ -115,7 +135,7 @@ function Header(props: { handlePressSidebarIcon: () => void }) {
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const [{ host }] = useSettings();
   const { messages } = useChat();
-  const [, { create }] = useSessions();
+  const { createSession } = useSessions();
   const { currentModel } = useModels();
   const router = useRouter();
 
@@ -138,7 +158,7 @@ function Header(props: { handlePressSidebarIcon: () => void }) {
           </Text>
         </TouchableOpacity>
       </View>
-      <Button onPress={create} size="icon" variant="ghost" className="top-safe absolute right-2 size-9 rounded-full">
+      <Button onPress={createSession} size="icon" variant="ghost" className="top-safe absolute right-2 size-9 rounded-full">
         <Icon as={Edit} className="size-[18px]" />
       </Button>
     </View>

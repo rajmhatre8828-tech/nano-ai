@@ -128,10 +128,10 @@ export function Server() {
             }}
             renderItem={({ label, isLastUsed }) => {
               return (
-                <>
+                <View className="flex flex-1 flex-row items-center justify-between gap-x-2 py-1">
                   <Text>{label}</Text>
                   {isLastUsed ? <Text className="text-sm text-muted-foreground">last used</Text> : null}
-                </>
+                </View>
               );
             }}
           />
@@ -151,7 +151,7 @@ export function Server() {
             }}
             renderItem={({ label, isLastUsed }) => {
               return (
-                <View className="flex flex-1 flex-row items-center justify-between gap-x-2">
+                <View className="flex flex-1 flex-row items-center justify-between gap-x-2 py-1">
                   <Text className="flex-1" numberOfLines={1}>
                     {label}
                   </Text>

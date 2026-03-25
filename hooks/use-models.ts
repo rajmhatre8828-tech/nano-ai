@@ -1,17 +1,16 @@
 import { fetch } from 'expo/fetch';
 import { useState } from 'react';
 
+import { useSessions } from '@/hooks/use-sessions';
 import { useSettings } from '@/hooks/use-settings';
 import { AIProviderEnum } from '@/lib/ai';
-import { useSessions } from '@/store/sessions';
 import type { Model } from '@/store/settings';
 
 export function useModels() {
   const [{ provider, host: baseURL, apiKey }] = useSettings();
   const [models, setModels] = useState<Model[]>([]);
-  const [sessions, { set }] = useSessions();
-  const { current, data } = sessions;
-  const { model: currentModel } = data[current] || {};
+  const { currentSession, setSessions } = useSessions();
+  const { model: currentModel } = currentSession || {};
 
   const discoverModels = async () => {
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` };
@@ -89,7 +88,7 @@ export function useModels() {
   };
 
   const setCurrentModel = (model: Model) => {
-    set(sessions => {
+    setSessions(sessions => {
       const { current, data } = sessions;
       data[current].model = model;
     });

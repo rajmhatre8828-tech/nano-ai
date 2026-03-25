@@ -1,11 +1,13 @@
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Edit, type LucideIcon, Settings, Trash2 } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import { type GestureResponderEvent, SectionList, View } from 'react-native';
 
+import { useSessions } from '@/hooks/use-sessions';
+import { useSettings } from '@/hooks/use-settings';
 import { cn, isInThisWeek, isInToday } from '@/lib/utils';
 import type { Session } from '@/store/sessions';
-import { useSessions } from '@/store/sessions';
 
 import { Button } from './ui/button';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuShortcut, ContextMenuTrigger } from './ui/context-menu';
@@ -17,13 +19,13 @@ type HistorySection = (Session & { index: number; latestTs: number })[];
 export function DrawerContent(props: { close: () => void }) {
   const { close } = props;
   const router = useRouter();
-  const [sessions, { create, switchTo, remove }] = useSessions();
-  const { current: currentIndex, data } = sessions;
+  const [{ hapticFeedback }] = useSettings();
+  const { current: currentIndex, sessions, loadSession, deleteSession, createSession } = useSessions();
   const historyData = useMemo(() => {
     const today: HistorySection = [];
     const thisWeek: HistorySection = [];
     const older: HistorySection = [];
-    data.forEach((chat, index) => {
+    sessions.forEach((chat, index) => {
       const { messages } = chat;
       if (messages.length > 0) {
         const { createAt } = messages.at(-1)!;
@@ -82,8 +84,13 @@ export function DrawerContent(props: { close: () => void }) {
               <Button
                 variant="ghost"
                 className={cn('mb-1 justify-start', item.index === currentIndex ? 'bg-accent' : '')}
+                onLongPress={() => {
+                  if (hapticFeedback) {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                }}
                 onPress={() => {
-                  switchTo(item.index);
+                  loadSession(item.index);
                   close();
                 }}>
                 <Text numberOfLines={1} ellipsizeMode="tail">
@@ -94,7 +101,7 @@ export function DrawerContent(props: { close: () => void }) {
             <ContextMenuContent>
               <ContextMenuItem
                 onPress={() => {
-                  remove(item.index);
+                  deleteSession(item.index);
                 }}>
                 <Text>Delete</Text>
                 <ContextMenuShortcut>
@@ -113,7 +120,7 @@ export function DrawerContent(props: { close: () => void }) {
         }}
       />
       <View className="flex gap-y-1">
-        <ActionButton icon={Edit} onPress={create}>
+        <ActionButton icon={Edit} onPress={createSession}>
           New Chat
         </ActionButton>
         <ActionButton
