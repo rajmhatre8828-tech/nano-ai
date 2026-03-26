@@ -30,9 +30,8 @@ export function useSessions() {
         sessions.data.push({ messages: [], model: defaultModel });
       }
 
-      if (sessions.current !== sessions.data.length - 1) {
-        sessions.current = sessions.data.length - 1;
-        sessions.data[sessions.current].model = defaultModel;
+      if (index < sessions.current) {
+        sessions.current -= 1;
       }
     });
   };
