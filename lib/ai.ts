@@ -43,7 +43,7 @@ export class AIRegistry {
       [AIProviderEnum.ANTHROPIC]: createAnthropic({ fetch: fetch as typeof globalThis.fetch, baseURL: host ? `${host}/v1` : void 0, apiKey }),
       [AIProviderEnum.OPENAI]: { ...openai, languageModel: modelId => openai.chat(modelId) },
       [AIProviderEnum.GOOGLE]: createGoogleGenerativeAI({ fetch: fetch as typeof globalThis.fetch, baseURL: host ? `${host}/v1beta` : void 0, apiKey }),
-      [AIProviderEnum.CUSTOM]: createOpenAICompatible({ name: 'provider-name', baseURL: host, apiKey })
+      [AIProviderEnum.CUSTOM]: createOpenAICompatible({ fetch: fetch as typeof globalThis.fetch, name: 'provider-name', baseURL: host, apiKey })
     });
   }
 
@@ -68,7 +68,7 @@ interface ChatRequest {
 type WithAbort<T> = [T, AbortController['abort']];
 
 export function chat(request: ChatRequest & { stream: true }): WithAbort<ReturnType<typeof streamText>['fullStream']>;
-export function chat(request: ChatRequest & { stream?: true }): Promise<WithAbort<string>>;
+export function chat(request: ChatRequest & { stream?: false }): Promise<WithAbort<string>>;
 export function chat(request: ChatRequest & { stream?: boolean }) {
   const { stream = false, messages, model } = request;
   const abortController = new AbortController();

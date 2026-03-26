@@ -1,14 +1,16 @@
+import { fetch } from 'expo/fetch';
 import { useColorScheme } from 'nativewind';
 import { useState } from 'react';
 import { Image, type ImageURISource, Pressable, View } from 'react-native';
 
 import { useSettings } from '@/hooks/use-settings';
 import { useToast } from '@/hooks/use-toast';
-import { AIProviderEnum } from '@/lib/ai';
+import { AIProviderEnum, AIRegistry, chat } from '@/lib/ai';
 
 import { SelectInput } from '../select-input';
 import { SettingSection } from '../setting-section';
 import { Button } from '../ui/button';
+import { Spinner } from '../ui/spinner';
 import { Text } from '../ui/text';
 
 const providerIcon: Record<AIProviderEnum, { light: ImageURISource; dark: ImageURISource }> = {
@@ -39,48 +41,75 @@ export function Server() {
   const toast = useToast();
   const [settings, setSettings] = useSettings();
   const { provider = AIProviderEnum.OLLAMA, host, apiKey, hostList = [], apiKeyList = [] } = settings;
-  const [draft, setDraft] = useState({ provider, host, apiKey });
+  const [connectStatus, setTestingStatus] = useState<'pending' | 'successful' | 'failed'>();
 
-  const dispatch = <K extends keyof typeof draft>(key: K) => {
-    return (v: (typeof draft)[K]) => {
-      setDraft(prev => ({ ...prev, [key]: v }));
+  const dispatch = <K extends 'provider' | 'host' | 'apiKey'>(key: K) => {
+    return (v: (typeof settings)[K]) => {
+      setSettings(prev => ({ ...prev, [key]: v }));
     };
   };
 
-  const handleSaveServerConfig = () => {
-    setSettings(settings => {
-      const { provider, host, apiKey } = draft;
-      settings.provider = provider;
-      settings.host = host;
-      settings.apiKey = apiKey;
+  const handleTestConnection = async () => {
+    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` };
 
-      if (!settings.hostList) settings.hostList = [];
-      const hostIndex = hostList.findIndex(({ value }) => value === host);
-      if (hostIndex > -1) {
-        settings.hostList.forEach((item, index) => {
-          item.isLastUsed = index === hostIndex;
-        });
-      } else {
-        settings.hostList.forEach(item => {
-          item.isLastUsed = false;
-        });
-        settings.hostList.push({ value: host, isLastUsed: true });
+    try {
+      setTestingStatus('pending');
+      switch (provider) {
+        case AIProviderEnum.ANTHROPIC:
+        case AIProviderEnum.OPENAI:
+        case AIProviderEnum.GOOGLE: {
+          const registry = new AIRegistry(host, apiKey);
+          await chat({ model: registry.model(`${provider}:gpt-3.5-turbo`), messages: [{ role: 'user', content: 'Hi' }] });
+
+          break;
+        }
+        case AIProviderEnum.OLLAMA: {
+          const result = await fetch(`${host}/api/tags`, { method: 'GET', headers });
+
+          if (!result.ok) throw Error(`${result.status} ${result.statusText}`);
+          break;
+        }
+        case AIProviderEnum.CUSTOM: {
+          const result = await fetch(`${host}/models`, { method: 'GET', headers });
+
+          if (!result.ok) throw Error(`${result.status} ${result.statusText}`);
+          break;
+        }
       }
 
-      if (!settings.apiKeyList) settings.apiKeyList = [];
-      const apiKeyIndex = apiKeyList.findIndex(({ value }) => value === apiKey);
-      if (apiKeyIndex > -1) {
-        settings.apiKeyList.forEach((item, index) => {
-          item.isLastUsed = index === apiKeyIndex;
-        });
-      } else {
-        settings.apiKeyList.forEach(item => {
-          item.isLastUsed = false;
-        });
-        settings.apiKeyList.push({ value: apiKey, isLastUsed: true });
-      }
-    });
-    toast.success('Configuration saved.', { position: 'bottom' });
+      setSettings(settings => {
+        if (!settings.hostList) settings.hostList = [];
+        const hostIndex = hostList.findIndex(({ value }) => value === host);
+        if (hostIndex > -1) {
+          settings.hostList.forEach((item, index) => {
+            item.isLastUsed = index === hostIndex;
+          });
+        } else {
+          settings.hostList.forEach(item => {
+            item.isLastUsed = false;
+          });
+          settings.hostList.push({ value: host, isLastUsed: true });
+        }
+
+        if (!settings.apiKeyList) settings.apiKeyList = [];
+        const apiKeyIndex = apiKeyList.findIndex(({ value }) => value === apiKey);
+        if (apiKeyIndex > -1) {
+          settings.apiKeyList.forEach((item, index) => {
+            item.isLastUsed = index === apiKeyIndex;
+          });
+        } else {
+          settings.apiKeyList.forEach(item => {
+            item.isLastUsed = false;
+          });
+          settings.apiKeyList.push({ value: apiKey, isLastUsed: true });
+        }
+      });
+      setTestingStatus('successful');
+      toast.success('Connect successfully!', { position: 'bottom' });
+    } catch (error) {
+      setTestingStatus('failed');
+      toast.error('Connect failed!', { position: 'bottom', description: `${error}` });
+    }
   };
 
   return (
@@ -110,7 +139,7 @@ export function Server() {
             );
           }}>
           <Pressable>
-            <Image source={providerIcon[draft.provider][colorScheme ?? 'light']} resizeMode="contain" className="size-7" />
+            <Image source={providerIcon[provider][colorScheme ?? 'light']} resizeMode="contain" className="size-7" />
           </Pressable>
         </SelectInput>
       </View>
@@ -118,7 +147,7 @@ export function Server() {
         <Text className="shrink-0 font-medium">Host</Text>
         <View className="min-w-0 flex-1">
           <SelectInput
-            value={draft.host}
+            value={host}
             placeholder="e.g. https://api.openai.com/v1"
             className="border-0 bg-transparent pr-1 text-right dark:bg-transparent"
             onChangeText={dispatch('host')}
@@ -141,7 +170,7 @@ export function Server() {
         <Text className="shrink-0 font-medium">API Key</Text>
         <View className="min-w-0 flex-1">
           <SelectInput
-            value={draft.apiKey}
+            value={apiKey}
             placeholder="e.g. sk-..."
             className="border-0 bg-transparent pr-1 text-right dark:bg-transparent"
             onChangeText={dispatch('apiKey')}
@@ -162,8 +191,9 @@ export function Server() {
           />
         </View>
       </View>
-      <Button disabled={!draft.host} onPress={handleSaveServerConfig}>
-        <Text>Save</Text>
+      <Button disabled={connectStatus === 'pending'} onPress={handleTestConnection}>
+        <Text>{connectStatus === 'pending' ? 'Connecting' : 'Test Connection'}</Text>
+        {connectStatus === 'pending' ? <Spinner className="text-background" /> : null}
       </Button>
     </SettingSection>
   );

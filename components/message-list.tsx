@@ -114,7 +114,7 @@ export function MessageList(props: { data: UIMessage[]; onRegenerate: (index: nu
           {error ? (
             <Alert variant="destructive" icon={AlertCircleIcon}>
               <AlertTitle>{error.name}</AlertTitle>
-              <AlertDescription style={{ fontFamily: 'Google_Sans_Code' }}>{'responseBody' in error ? JSON.stringify(JSON.parse(error.responseBody as string), null, 2) : error.message}</AlertDescription>
+              <AlertDescription style={{ fontFamily: 'Google_Sans_Code' }}>{'responseBody' in error && error.responseBody ? JSON.stringify(JSON.parse(error.responseBody as string), null, 2) : error.message}</AlertDescription>
             </Alert>
           ) : null}
         </View>

@@ -36,7 +36,7 @@ export function useChat(options?: UseChatOptions) {
       [AIProviderEnum.ANTHROPIC]: { thinking: { type: reasoning ? 'enabled' : 'disabled', budgetTokens: 12000 } },
       [AIProviderEnum.OPENAI]: { reasoningEffort: reasoning ? 'high' : 'none' },
       [AIProviderEnum.GOOGLE]: { thinkingConfig: reasoning ? { thinkingLevel: 'high' } : {} },
-      [AIProviderEnum.CUSTOM]: {}
+      [AIProviderEnum.CUSTOM]: { reasoningEffort: reasoning ? 'high' : 'none' }
     });
   }, [settings, think, model]);
   const stopRef = useRef<() => void>(null);
@@ -56,7 +56,13 @@ export function useChat(options?: UseChatOptions) {
     return (message: string) => {
       return chat({
         model: languageModel,
-        messages: [...messages.slice(0, index ?? messages.length), { role: 'user', content: message }].map(({ role, content }) => ({ role, content })) as ModelMessage[],
+        messages: [
+          ...messages.slice(0, index ?? messages.length),
+          {
+            role: 'user',
+            content: message
+          }
+        ].map(({ role, content }) => ({ role, content })) as ModelMessage[],
         stream: true
       });
     };
