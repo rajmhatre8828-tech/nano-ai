@@ -4,6 +4,7 @@ import { createStorageAtom, StorageKey } from '@/lib/local-storage';
 export interface Model {
   name: string;
   canThink?: boolean;
+  isCustom?: boolean;
 }
 
 export interface Settings {

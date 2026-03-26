@@ -36,6 +36,41 @@ const IMAGE_STYLE = {
   width: 64
 };
 
+function Header(props: { handlePressSidebarIcon: () => void }) {
+  const { handlePressSidebarIcon } = props;
+  const { colorScheme, toggleColorScheme } = useColorScheme();
+  const [{ host }] = useSettings();
+  const { messages } = useChat();
+  const { createSession } = useSessions();
+  const { currentModel } = useModels();
+  const router = useRouter();
+
+  return (
+    <View className="pt-safe absolute z-10 flex w-full flex-row items-center bg-background pb-1">
+      <Button onPress={handlePressSidebarIcon} size="icon" variant="ghost" className="top-safe absolute left-2 size-9 rounded-full">
+        <Icon as={Sidebar} className="size-[18px]" />
+      </Button>
+      <Button onPress={toggleColorScheme} size="icon" variant="ghost" className="top-safe absolute left-10 size-9 rounded-full">
+        <Icon as={THEME_ICONS[colorScheme ?? 'light']} className="size-[18px]" />
+      </Button>
+      <View className="flex-1 items-center">
+        <View className="flex flex-row items-center gap-x-1">
+          {messages.length > 0 ? <Image source={LOGO[colorScheme ?? 'light']} resizeMode="contain" className="mb-1 size-6" /> : null}
+          <Text className="text-base font-medium">Nano AI</Text>
+        </View>
+        <TouchableOpacity disabled={!host} onPress={() => router.push('/models')}>
+          <Text style={{ fontFamily: 'Google_Sans_Code' }} className={cn('text-xs', host ? 'text-muted-foreground' : 'text-gray-300')}>
+            {currentModel ? currentModel.name : 'select model...'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <Button onPress={createSession} size="icon" variant="ghost" className="top-safe absolute right-2 size-9 rounded-full">
+        <Icon as={Edit} className="size-[18px]" />
+      </Button>
+    </View>
+  );
+}
+
 export default function Index() {
   const { colorScheme } = useColorScheme();
   const { start: startLiveActivity, stop: stopLiveActivity, running } = useLiveActivity();
@@ -127,40 +162,5 @@ export default function Index() {
         )}
       </View>
     </ReanimatedDrawerLayout>
-  );
-}
-
-function Header(props: { handlePressSidebarIcon: () => void }) {
-  const { handlePressSidebarIcon } = props;
-  const { colorScheme, toggleColorScheme } = useColorScheme();
-  const [{ host }] = useSettings();
-  const { messages } = useChat();
-  const { createSession } = useSessions();
-  const { currentModel } = useModels();
-  const router = useRouter();
-
-  return (
-    <View className="pt-safe absolute z-10 flex w-full flex-row items-center bg-background pb-1">
-      <Button onPress={handlePressSidebarIcon} size="icon" variant="ghost" className="top-safe absolute left-2 size-9 rounded-full">
-        <Icon as={Sidebar} className="size-[18px]" />
-      </Button>
-      <Button onPress={toggleColorScheme} size="icon" variant="ghost" className="top-safe absolute left-10 size-9 rounded-full">
-        <Icon as={THEME_ICONS[colorScheme ?? 'light']} className="size-[18px]" />
-      </Button>
-      <View className="flex-1 items-center">
-        <View className="flex flex-row items-center gap-x-1">
-          {messages.length > 0 ? <Image source={LOGO[colorScheme ?? 'light']} resizeMode="contain" className="mb-1 size-6" /> : null}
-          <Text className="text-base font-medium">Nano AI</Text>
-        </View>
-        <TouchableOpacity disabled={!host} onPress={() => router.push('/models')}>
-          <Text style={{ fontFamily: 'Google_Sans_Code' }} className={cn('text-xs', host ? 'text-muted-foreground' : 'text-gray-300')}>
-            {currentModel ? currentModel.name : 'select model...'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <Button onPress={createSession} size="icon" variant="ghost" className="top-safe absolute right-2 size-9 rounded-full">
-        <Icon as={Edit} className="size-[18px]" />
-      </Button>
-    </View>
   );
 }

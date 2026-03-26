@@ -87,7 +87,7 @@ export function useModels() {
     setModels(models);
   };
 
-  const setCurrentModel = (model: Model) => {
+  const setCurrentModel = (model?: Model) => {
     setSessions(sessions => {
       const { current, data } = sessions;
       data[current].model = model;
