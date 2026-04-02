@@ -53,10 +53,10 @@ export default function ModalScreen() {
 
   if (error) {
     return (
-      <View className="flex h-full flex-1 items-center justify-center">
+      <View className="flex h-full flex-1 items-center justify-center px-2">
         <CloudAlert size={44} />
         <Text className="text-xl font-medium">Models discovering error</Text>
-        <Text className="text-muted-foreground">{`${error.message}`}</Text>
+        <Text className="text-center text-muted-foreground">{`${error.message}`}</Text>
       </View>
     );
   }

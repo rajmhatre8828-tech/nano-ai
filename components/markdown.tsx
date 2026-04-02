@@ -1,9 +1,13 @@
 import { useTheme } from '@react-navigation/native';
+// @ts-expect-error dts files missing
 import markdownItMath from 'markdown-it-math';
-import { ScrollView, type ScrollViewProps, type TextStyle, View } from 'react-native';
+import { ScrollView, type ScrollViewProps, TextInput, type TextStyle, View } from 'react-native';
 import RNMarkdown, { MarkdownIt } from 'react-native-markdown-display';
+// @ts-expect-error dts files missing
 import MathView from 'react-native-math-view';
+// @ts-expect-error dts files missing
 import SyntaxHighlighter from 'react-native-syntax-highlighter';
+// @ts-expect-error dts files missing
 import { atomOneDark, atomOneLight } from 'react-syntax-highlighter/styles/hljs';
 
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -115,13 +119,13 @@ export function Markdown(props: { content: string; style?: TextStyle }) {
             </SyntaxHighlighter>
           );
         },
-        // textgroup: (node, children, parent, styles) => {
-        //   return (
-        //     <TextInput key={node.key} style={styles.textgroup} editable={false} multiline>
-        //       {children}
-        //     </TextInput>
-        //   );
-        // },
+        textgroup: (node, children, parent, styles) => {
+          return (
+            <TextInput key={node.key} style={styles.textgroup} editable={false} multiline>
+              {children}
+            </TextInput>
+          );
+        },
         table: (node, children, parent, styles) => {
           // @ts-expect-error react node type
           const columns: number = children[1].props?.children[0]?.props?.children?.length;
