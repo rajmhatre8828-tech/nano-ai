@@ -36,7 +36,8 @@ export function useChat(options?: UseChatOptions) {
       [AIProviderEnum.ANTHROPIC]: { thinking: { type: reasoning ? 'enabled' : 'disabled', budgetTokens: 12000 } },
       [AIProviderEnum.OPENAI]: { reasoningEffort: reasoning ? 'high' : 'none' },
       [AIProviderEnum.GOOGLE]: { thinkingConfig: reasoning ? { thinkingLevel: 'high' } : {} },
-      [AIProviderEnum.CUSTOM]: { reasoningEffort: reasoning ? 'high' : 'none' }
+      [AIProviderEnum.CUSTOM]: { reasoningEffort: reasoning ? 'high' : 'none' },
+      [AIProviderEnum.OPENCLAW]: { reasoningEffort: reasoning ? 'high' : 'none' }
     });
   }, [settings, think, model]);
   const stopRef = useRef<() => void>(null);

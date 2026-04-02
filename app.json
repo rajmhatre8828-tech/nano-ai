@@ -23,7 +23,11 @@
         "NSSupportsLiveActivities": true,
         "NSMicrophoneUsageDescription": "We need access to your microphone for voice input",
         "NSSpeechRecognitionUsageDescription": "We need access to speech recognition for voice input",
-        "NSPhotoLibraryUsageDescription": "This app does not access your photo library"
+        "NSPhotoLibraryUsageDescription": "This app does not access your photo library",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsLocalNetworking": true
+        }
       }
     },
     "plugins": [

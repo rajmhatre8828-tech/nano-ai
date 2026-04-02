@@ -11,7 +11,8 @@ export enum AIProviderEnum {
   OPENAI = 'openai',
   ANTHROPIC = 'anthropic',
   GOOGLE = 'google',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
+  OPENCLAW = 'openclaw'
 }
 
 type ExtractLiteralUnion<T> = T extends string ? (string extends T ? never : T) : never;
@@ -22,6 +23,7 @@ interface ProviderOptions {
   [AIProviderEnum.OPENAI]: OpenAIResponsesProviderOptions;
   [AIProviderEnum.GOOGLE]: GoogleGenerativeAIProviderOptions;
   [AIProviderEnum.CUSTOM]: OpenAICompatibleProviderOptions;
+  [AIProviderEnum.OPENCLAW]: OpenAICompatibleProviderOptions;
 }
 
 interface ProviderModels {
@@ -30,6 +32,7 @@ interface ProviderModels {
   [AIProviderEnum.OPENAI]: ExtractLiteralUnion<Parameters<OpenAIProvider['chat']>[0]>;
   [AIProviderEnum.GOOGLE]: ExtractLiteralUnion<Parameters<GoogleGenerativeAIProvider['languageModel']>[0]>;
   [AIProviderEnum.CUSTOM]: OpenAICompatibleChatModelId;
+  [AIProviderEnum.OPENCLAW]: OpenAICompatibleChatModelId;
 }
 
 export class AIRegistry {
@@ -43,7 +46,8 @@ export class AIRegistry {
       [AIProviderEnum.ANTHROPIC]: createAnthropic({ fetch: fetch as typeof globalThis.fetch, baseURL: host ? `${host}/v1` : void 0, apiKey }),
       [AIProviderEnum.OPENAI]: { ...openai, languageModel: modelId => openai.chat(modelId) },
       [AIProviderEnum.GOOGLE]: createGoogleGenerativeAI({ fetch: fetch as typeof globalThis.fetch, baseURL: host ? `${host}/v1beta` : void 0, apiKey }),
-      [AIProviderEnum.CUSTOM]: createOpenAICompatible({ fetch: fetch as typeof globalThis.fetch, name: 'provider-name', baseURL: host, apiKey })
+      [AIProviderEnum.CUSTOM]: createOpenAICompatible({ fetch: fetch as typeof globalThis.fetch, name: 'provider-name', baseURL: host, apiKey }),
+      [AIProviderEnum.OPENCLAW]: createOpenAICompatible({ fetch: fetch as typeof globalThis.fetch, name: 'openclaw', baseURL: host, apiKey, headers: { 'x-openclaw-session-key': 'agent:main:main' } })
     });
   }
 
