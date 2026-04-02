@@ -45,7 +45,7 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="models" options={{ presentation: 'modal', title: 'Available Models' }} />
-            <Stack.Screen name="settings" options={{ headerTitle: 'Settings', headerBackButtonDisplayMode: 'minimal', headerTransparent: true }} />
+            <Stack.Screen name="settings" options={{ headerTitle: 'Settings', headerBackButtonDisplayMode: 'minimal', headerBackButtonMenuEnabled: false, headerTransparent: true }} />
           </Stack>
           <PortalHost />
         </ThemeProvider>

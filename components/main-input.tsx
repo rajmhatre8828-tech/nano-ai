@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { ArrowUpIcon, AudioLines, Lightbulb } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Keyboard, View } from 'react-native';
 
 import { useSessions } from '@/hooks/use-sessions';
@@ -27,9 +27,18 @@ export function MainInput(props: { onSend: (input: string) => Promise<void>; onA
 
     return false;
   }, [messages]);
-  const { recognizing, transcript, audioWaves, start, stop } = useVoiceInput();
+  const { recognizing, audioWaves, start, stop } = useVoiceInput({
+    onResult: event => {
+      const { results, isFinal } = event;
+      const [{ transcript }] = results;
+      if (isFinal && transcript && shouldSendRef.current) {
+        onSend(transcript);
+      }
+    }
+  });
   const [speechMode, setSpeechMode] = useState(false);
   const [pressedInside, setPressedInside] = useState(false);
+  const shouldSendRef = useRef(false);
 
   const handleSend = async () => {
     setTimeout(() => {
@@ -77,13 +86,14 @@ export function MainInput(props: { onSend: (input: string) => Promise<void>; onA
             stop();
           }}
           onPress={async () => {
-            if (transcript) {
-              stop();
-              await onSend(transcript);
-            }
+            shouldSendRef.current = true;
+            stop();
           }}
           onTouchEnd={() => {
-            if (!pressedInside) stop();
+            if (!pressedInside) {
+              shouldSendRef.current = false;
+              stop();
+            }
           }}>
           {recognizing ? (
             <View className="flex-row items-center gap-x-0.5">

@@ -23,10 +23,11 @@ export interface SelectInputProps<T> extends ComponentProps<typeof Input> {
   contentProps?: ContentProps;
   emptyView?: ReactNode;
   children?: ReactNode;
+  autoCloseOnChange?: boolean;
 }
 
 export function SelectInput<T extends SelectOption>(props: SelectInputProps<T>) {
-  const { options = [], renderItem, onPressItem, contentProps, emptyView, children, ...inputProps } = props;
+  const { options = [], renderItem, onPressItem, contentProps, emptyView, children, autoCloseOnChange = true, ...inputProps } = props;
   const { className, ...others } = contentProps || {};
   const ref = useRef<TriggerRef>(null);
   const [{ hapticFeedback }] = useSettings();
@@ -34,7 +35,19 @@ export function SelectInput<T extends SelectOption>(props: SelectInputProps<T>) 
   return (
     <Popover>
       <PopoverTrigger ref={ref} asChild>
-        {children ? children : <Input {...inputProps} />}
+        {children ? (
+          children
+        ) : (
+          <Input
+            {...inputProps}
+            onChangeText={v => {
+              inputProps.onChangeText?.(v);
+              if (autoCloseOnChange) {
+                ref.current?.close();
+              }
+            }}
+          />
+        )}
       </PopoverTrigger>
       <PopoverContent className={cn('w-full p-1', className)} {...others}>
         {options.length > 0 ? (

@@ -72,7 +72,7 @@ export default function ModalScreen() {
 
   return (
     <ScrollView>
-      <View className="pb-safe flex gap-y-1 py-5 pt-2">
+      <View className="pb-safe space-y-1 pt-2">
         <View className="mx-3 gap-y-3 rounded-lg py-2">
           <View className="flex flex-row items-center gap-3">
             <Checkbox disabled={!customModel.name} checked={useCustomModel} onCheckedChange={setUseCustomModel} />
@@ -102,31 +102,33 @@ export default function ModalScreen() {
           </View>
         </View>
         <Separator />
-        {[...models]
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map(model => {
-            const { name, canThink } = model;
-            const isCurrent = name === currentModel?.name && !currentModel.isCustom;
+        <View className="flex gap-y-1 px-2 pt-2">
+          {[...models]
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(model => {
+              const { name, canThink } = model;
+              const isCurrent = name === currentModel?.name && !currentModel.isCustom;
 
-            return (
-              <Button
-                key={name}
-                variant="ghost"
-                className={cn('flex flex-row justify-between', isCurrent ? 'bg-accent' : '')}
-                onPress={() => {
-                  handleSelectModel(model);
+              return (
+                <Button
+                  key={name}
+                  variant="ghost"
+                  className={cn('flex flex-row justify-between', isCurrent ? 'bg-accent' : '')}
+                  onPress={() => {
+                    handleSelectModel(model);
 
-                  router.dismiss();
-                }}>
-                <Text className="text-base">{name}</Text>
-                {canThink ? (
-                  <Badge variant="secondary" className="rounded-full">
-                    <Icon as={Lightbulb} className="text-blue-500" />
-                  </Badge>
-                ) : null}
-              </Button>
-            );
-          })}
+                    router.dismiss();
+                  }}>
+                  <Text className="text-base">{name}</Text>
+                  {canThink ? (
+                    <Badge variant="secondary" className="rounded-full">
+                      <Icon as={Lightbulb} className="text-blue-500" />
+                    </Badge>
+                  ) : null}
+                </Button>
+              );
+            })}
+        </View>
       </View>
     </ScrollView>
   );

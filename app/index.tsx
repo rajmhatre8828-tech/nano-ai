@@ -6,7 +6,6 @@ import { useEffect, useRef } from 'react';
 import { Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, View } from 'react-native';
 import ReanimatedDrawerLayout, { DrawerLayoutMethods } from 'react-native-gesture-handler/ReanimatedDrawerLayout';
 
-import { ConnectTips } from '@/components/connect-tips';
 import { DrawerContent } from '@/components/drawer-content';
 import { MainInput } from '@/components/main-input';
 import { MessageList } from '@/components/message-list';
@@ -18,8 +17,8 @@ import { useLiveActivity } from '@/hooks/use-live-activity';
 import { useModels } from '@/hooks/use-models';
 import { useSessions } from '@/hooks/use-sessions';
 import { useSettings } from '@/hooks/use-settings';
+import { useUpdateEffect } from '@/hooks/use-update-effect';
 import { STOP_LIVE_ACTIVITY_ACTION_TARGET } from '@/lib/constants';
-import { cn } from '@/lib/utils';
 
 const LOGO = {
   light: require('@/assets/images/logo.png'),
@@ -39,11 +38,17 @@ const IMAGE_STYLE = {
 function Header(props: { handlePressSidebarIcon: () => void }) {
   const { handlePressSidebarIcon } = props;
   const { colorScheme, toggleColorScheme } = useColorScheme();
-  const [{ host }] = useSettings();
+  const [{ provider }] = useSettings();
   const { messages } = useChat();
   const { createSession } = useSessions();
-  const { currentModel } = useModels();
+  const { currentModel, setCurrentModel } = useModels();
   const router = useRouter();
+
+  useUpdateEffect(() => {
+    if (messages.length === 0) {
+      setCurrentModel(void 0);
+    }
+  }, [provider]);
 
   return (
     <View className="pt-safe absolute z-10 flex w-full flex-row items-center bg-background pb-1">
@@ -58,9 +63,9 @@ function Header(props: { handlePressSidebarIcon: () => void }) {
           {messages.length > 0 ? <Image source={LOGO[colorScheme ?? 'light']} resizeMode="contain" className="mb-1 size-6" /> : null}
           <Text className="text-base font-medium">Nano AI</Text>
         </View>
-        <TouchableOpacity disabled={!host} onPress={() => router.push('/models')}>
-          <Text style={{ fontFamily: 'Google_Sans_Code' }} className={cn('text-xs', host ? 'text-muted-foreground' : 'text-gray-300')}>
-            {currentModel ? currentModel.name : 'select model...'}
+        <TouchableOpacity onPress={() => router.push('/models')}>
+          <Text style={{ fontFamily: 'Google_Sans_Code' }} className="text-xs text-muted-foreground">
+            {currentModel ? currentModel.name : 'select a model to start...'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -145,19 +150,19 @@ export default function Index() {
           <KeyboardAvoidingView behavior="padding" className="flex flex-1 flex-col items-center justify-center">
             <MessageList data={messages} error={error} onRegenerate={handleRegenerate} />
             <View className="pb-safe px-safe-offset-4 w-full pt-2">
-              <ConnectTips className="mb-4" />
               <MainInput onSend={handleSend} onAbort={handleAbort} />
             </View>
           </KeyboardAvoidingView>
         ) : (
           <ScrollView contentContainerClassName="flex-1" scrollEnabled={false} keyboardShouldPersistTaps="handled">
-            <View className="relative flex flex-1 flex-col items-center justify-center">
-              <KeyboardAvoidingView behavior="position" className="px-safe-offset-4 w-full pb-4">
-                <Image source={LOGO[colorScheme ?? 'light']} style={IMAGE_STYLE} resizeMode="contain" className="mx-auto mb-8" />
+            <KeyboardAvoidingView behavior="padding" className="flex flex-1">
+              <View className="flex flex-1 items-center justify-center gap-y-2">
+                <Image source={LOGO[colorScheme ?? 'light']} style={IMAGE_STYLE} resizeMode="contain" />
+              </View>
+              <View className="pb-safe px-safe-offset-4 w-full pt-2">
                 <MainInput onSend={handleSend} onAbort={handleAbort} />
-              </KeyboardAvoidingView>
-              <ConnectTips className="bottom-safe left-safe-offset-4 right-safe-offset-4 absolute" />
-            </View>
+              </View>
+            </KeyboardAvoidingView>
           </ScrollView>
         )}
       </View>

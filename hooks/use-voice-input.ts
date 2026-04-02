@@ -2,8 +2,9 @@ import { type ExpoSpeechRecognitionErrorEvent, ExpoSpeechRecognitionModule, type
 import { useRef, useState } from 'react';
 import { Animated } from 'react-native';
 
+import { useSettings } from './use-settings';
+
 interface UseVoiceInputOptions {
-  language?: 'zh-CN' | 'en-US';
   audioWavesShape?: number[];
   onStart?: () => void;
   onEnd?: () => void;
@@ -15,7 +16,8 @@ interface UseVoiceInputOptions {
 const DEFAULT_AUDIO_WAVES_SHAPE = [0, 0.2, 0.4, 0.6, 0.8, 1, 0.8, 0.6, 0.4, 0.2, 0];
 
 export function useVoiceInput(options?: UseVoiceInputOptions) {
-  const { language = 'zh-CN', audioWavesShape = DEFAULT_AUDIO_WAVES_SHAPE, onStart, onEnd, onResult, onError, onVolumeChange } = options ?? {};
+  const { audioWavesShape = DEFAULT_AUDIO_WAVES_SHAPE, onStart, onEnd, onResult, onError, onVolumeChange } = options ?? {};
+  const [{ voiceLanguage = 'en-US' }] = useSettings();
   const [recognizing, setRecognizing] = useState(false);
   const [transcript, setTranscript] = useState('');
   const audioWaves = useRef(audioWavesShape.map(() => new Animated.Value(4))).current;
@@ -62,7 +64,7 @@ export function useVoiceInput(options?: UseVoiceInputOptions) {
 
     setTranscript('');
     ExpoSpeechRecognitionModule.start({
-      lang: language,
+      lang: voiceLanguage,
       interimResults: true,
       continuous: true,
       volumeChangeEventOptions: {

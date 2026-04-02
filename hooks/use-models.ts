@@ -7,7 +7,7 @@ import { AIProviderEnum } from '@/lib/ai';
 import type { Model } from '@/store/settings';
 
 export function useModels() {
-  const [{ provider, host: baseURL, apiKey }] = useSettings();
+  const [{ provider = AIProviderEnum.OLLAMA, host: baseURL, apiKey }] = useSettings();
   const [models, setModels] = useState<Model[]>([]);
   const { currentSession, setSessions } = useSessions();
   const { model: currentModel } = currentSession || {};
@@ -56,7 +56,13 @@ export function useModels() {
         throw Error(`${result.status} ${result.statusText}`);
       }
       case AIProviderEnum.GOOGLE: {
-        const result = await fetch('https://generativelanguage.googleapis.com/v1/models', { method: 'GET', headers });
+        const result = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+          method: 'GET',
+          headers: {
+            'x-goog-api-key': apiKey,
+            'Content-Type': 'application/json'
+          }
+        });
 
         if (result.ok) {
           const { models } = (await result.json()) as { models: { name: string }[] };
@@ -65,7 +71,8 @@ export function useModels() {
 
         throw Error(`${result.status} ${result.statusText}`);
       }
-      case AIProviderEnum.CUSTOM: {
+      case AIProviderEnum.CUSTOM:
+      case AIProviderEnum.OPENCLAW: {
         if (!baseURL) throw Error('Base URL is missing');
         const result = await fetch(`${baseURL}/models`, { method: 'GET', headers });
 
