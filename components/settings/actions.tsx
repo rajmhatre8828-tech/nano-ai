@@ -24,15 +24,15 @@ export function Actions() {
       await Linking.openURL(PROJECT_GITHUB_URL);
     }
   };
+
   const handleClearHistoryAPIEndpoints = () => {
     setSettings(settings => {
-      settings.hostList = [];
-      settings.apiKeyList = [];
+      settings.endpoints = [];
     });
   };
 
   return (
-    <SettingSection title="Actions">
+    <SettingSection className="gap-4 bg-background p-0">
       <Button variant="outline" onPress={handleViewOnGithub}>
         <Text>View on Github</Text>
         <Icon as={Github} size={16} />

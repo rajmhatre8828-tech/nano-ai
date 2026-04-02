@@ -1,5 +1,5 @@
 import type { TriggerRef } from '@rn-primitives/select';
-import { MoonStar, Sun } from 'lucide-react-native';
+import { AudioLines, Braces, MoonStar, Sun, SunMoon, Vibrate } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useRef } from 'react';
 import { View } from 'react-native';
@@ -17,12 +17,15 @@ export function System() {
   const ref = useRef<TriggerRef>(null);
   const { colorScheme, setColorScheme } = useColorScheme();
   const [settings, setSettings] = useSettings();
-  const { hapticFeedback, tokensUsage = 0 } = settings;
+  const { hapticFeedback, tokensUsage = 0, voiceLanguage = 'en-US' } = settings;
 
   return (
-    <SettingSection title="System">
-      <View className="flex flex-row items-center">
-        <Text className="flex-1 font-medium">Appearance</Text>
+    <SettingSection>
+      <View className="flex h-10 flex-row items-center">
+        <View className="flex flex-1 flex-row items-center gap-x-2">
+          <Icon as={SunMoon} size={18} />
+          <Text className="font-medium">Appearance</Text>
+        </View>
         <Select
           value={{ label: '', value: colorScheme || 'light' }}
           onValueChange={opt => {
@@ -46,8 +49,11 @@ export function System() {
           </SelectContent>
         </Select>
       </View>
-      <View className="flex flex-row items-center">
-        <Text className="flex-1 font-medium">Haptic Feedback</Text>
+      <View className="flex h-10 flex-row items-center">
+        <View className="flex flex-1 flex-row items-center gap-x-2">
+          <Icon as={Vibrate} size={18} />
+          <Text className="font-medium">Haptic Feedback</Text>
+        </View>
         <Switch
           checked={hapticFeedback}
           onCheckedChange={value => {
@@ -57,9 +63,33 @@ export function System() {
           }}
         />
       </View>
-      <View className="mt-1 flex flex-row items-center">
-        <Text className="flex-1 font-medium">Tokens Usage</Text>
+      <View className="flex h-10 flex-row items-center">
+        <View className="flex flex-1 flex-row items-center gap-x-2">
+          <Icon as={Braces} size={18} />
+          <Text className="font-medium">Tokens Usage</Text>
+        </View>
         <Text className="text-muted-foreground">{tokensUsage.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</Text>
+      </View>
+      <View className="flex h-10 flex-row items-center">
+        <View className="flex flex-1 flex-row items-center gap-x-2">
+          <Icon as={AudioLines} size={18} />
+          <Text className="font-medium">Voice</Text>
+        </View>
+        <Select
+          value={{ label: '', value: voiceLanguage }}
+          onValueChange={opt => {
+            setSettings(settings => {
+              settings.voiceLanguage = opt?.value as 'en-US' | 'zh-CN';
+            });
+          }}>
+          <SelectTrigger className="border-0 bg-transparent p-0 shadow-none dark:bg-transparent" showIcon={false}>
+            <Text className="text-muted-foreground">{voiceLanguage === 'en-US' ? 'English' : 'Chinese'}</Text>
+          </SelectTrigger>
+          <SelectContent insets={{ right: 16 }} className="w-[100px]" side="bottom">
+            <SelectItem label="English" value="en-US" />
+            <SelectItem label="Chinese" value="zh-CN" />
+          </SelectContent>
+        </Select>
       </View>
     </SettingSection>
   );

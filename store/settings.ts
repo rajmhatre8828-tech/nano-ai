@@ -7,23 +7,30 @@ export interface Model {
   isCustom?: boolean;
 }
 
+export interface Endpoint {
+  provider: AIProviderEnum;
+  host: string;
+  apiKey: string;
+  isLastUsed: boolean;
+}
+
 export interface Settings {
   provider: AIProviderEnum;
   host: string;
   apiKey: string;
-  hostList: { value: string; isLastUsed: boolean }[];
-  apiKeyList: { value: string; isLastUsed: boolean }[];
   defaultModel?: Model;
   hapticFeedback: boolean;
   tokensUsage: number;
+  endpoints: Endpoint[];
+  voiceLanguage: 'zh-CN' | 'en-US';
 }
 
 export const settings = createStorageAtom(StorageKey.SETTINGS, {
   provider: AIProviderEnum.OLLAMA,
   host: '',
   apiKey: '',
-  hostList: [],
-  apiKeyList: [],
   hapticFeedback: true,
-  tokensUsage: 0
+  tokensUsage: 0,
+  endpoints: [],
+  voiceLanguage: 'en-US'
 } as Settings);
