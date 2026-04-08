@@ -32,12 +32,12 @@ export function Actions() {
   };
 
   return (
-    <SettingSection className="gap-4 bg-background p-0">
-      <Button variant="outline" onPress={handleViewOnGithub}>
+    <SettingSection>
+      <Button variant="outline" className="dark:bg-black" onPress={handleViewOnGithub}>
         <Text>View on Github</Text>
         <Icon as={Github} size={16} />
       </Button>
-      <Button variant="outline" onPress={handleClearHistoryAPIEndpoints}>
+      <Button variant="outline" className="dark:bg-black" onPress={handleClearHistoryAPIEndpoints}>
         <Text>Clear API Endpoint Records</Text>
         <Icon as={History} size={16} />
       </Button>

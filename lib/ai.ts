@@ -47,7 +47,7 @@ export class AIRegistry {
       [AIProviderEnum.OPENAI]: { ...openai, languageModel: modelId => openai.chat(modelId) },
       [AIProviderEnum.GOOGLE]: createGoogleGenerativeAI({ fetch: fetch as typeof globalThis.fetch, baseURL: host ? `${host}/v1beta` : void 0, apiKey }),
       [AIProviderEnum.CUSTOM]: createOpenAICompatible({ fetch: fetch as typeof globalThis.fetch, name: 'provider-name', baseURL: host, apiKey }),
-      [AIProviderEnum.OPENCLAW]: createOpenAICompatible({ fetch: fetch as typeof globalThis.fetch, name: 'openclaw', baseURL: host, apiKey, headers: { 'x-openclaw-session-key': 'agent:main:main' } })
+      [AIProviderEnum.OPENCLAW]: createOpenAICompatible({ fetch: fetch as typeof globalThis.fetch, name: 'openclaw', baseURL: host, apiKey, headers: { 'Content-Type': 'text/event-stream', 'x-openclaw-session-key': 'agent:main:main' } })
     });
   }
 

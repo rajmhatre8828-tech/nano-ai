@@ -179,7 +179,7 @@ export function Server() {
               { label: 'Anthropic', value: 'anthropic' },
               { label: 'Google', value: 'google' },
               { label: 'OpenAI Compatible', value: 'custom' },
-              { label: 'OpenClaw', value: 'openclaw' }
+              { label: 'OpenClaw (Experimental)', value: 'openclaw' }
             ]}
             contentProps={{
               insets: { left: 16, right: 16 },

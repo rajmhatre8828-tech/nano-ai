@@ -1,4 +1,5 @@
 import type { TriggerRef } from '@rn-primitives/select';
+import * as Haptics from 'expo-haptics';
 import { AudioLines, Braces, MoonStar, Sun, SunMoon, Vibrate } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useRef } from 'react';
@@ -82,7 +83,14 @@ export function System() {
               settings.voiceLanguage = opt?.value as 'en-US' | 'zh-CN';
             });
           }}>
-          <SelectTrigger className="border-0 bg-transparent p-0 shadow-none dark:bg-transparent" showIcon={false}>
+          <SelectTrigger
+            className="border-0 bg-transparent p-0 shadow-none dark:bg-transparent"
+            showIcon={false}
+            onPress={() => {
+              if (hapticFeedback) {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+            }}>
             <Text className="text-muted-foreground">{voiceLanguage === 'en-US' ? 'English' : 'Chinese'}</Text>
           </SelectTrigger>
           <SelectContent insets={{ right: 16 }} className="w-[100px]" side="bottom">

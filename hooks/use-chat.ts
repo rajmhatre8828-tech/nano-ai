@@ -58,7 +58,7 @@ export function useChat(options?: UseChatOptions) {
       return chat({
         model: languageModel,
         messages: [
-          ...messages.slice(0, index ?? messages.length),
+          ...messages.slice(0, settings.provider === AIProviderEnum.OPENCLAW ? 0 : (index ?? messages.length)),
           {
             role: 'user',
             content: message
@@ -194,8 +194,9 @@ export function useChat(options?: UseChatOptions) {
   };
 
   const regenerate = async (index: number) => {
+    const realIndex = index < 0 ? messages.length + index : index;
     setSessions(sessions => {
-      sessions.data[sessions.current].messages[index] = {
+      sessions.data[sessions.current].messages[realIndex] = {
         role: 'assistant',
         content: '',
         createAt: +new Date(),
@@ -205,8 +206,8 @@ export function useChat(options?: UseChatOptions) {
       };
     });
 
-    const input = messages[index - 1].content;
-    await processing(input, index);
+    const input = messages[realIndex - 1].content;
+    await processing(input, realIndex);
   };
 
   const handleError = (error: Error) => {

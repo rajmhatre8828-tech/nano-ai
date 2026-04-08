@@ -4,8 +4,10 @@ import { ScrollView, View } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { useScrollToEnd } from '@/hooks/use-scroll-to-end';
+import { useSettings } from '@/hooks/use-settings';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useUpdateLayoutEffect } from '@/hooks/use-update-effect';
+import { AIProviderEnum } from '@/lib/ai';
 import type { UIMessage } from '@/store/sessions';
 
 import { Copy } from './copy';
@@ -21,8 +23,10 @@ import { Text } from './ui/text';
 export function MessageList(props: { data: UIMessage[]; onRegenerate: (index: number) => void; error: Error | null }) {
   const { data, error, onRegenerate } = props;
   const { mutedForeground } = useThemeColor();
+  const [{ provider }] = useSettings();
   const { scroller, scrollToEnd, handleScroll, handleLayout, handleContentSizeChange, isAtEnd } = useScrollToEnd(200);
   const autoScrollEnabled = useRef(true);
+  const messagePositions = useRef<number[]>([]);
   const inChatting = useMemo(() => {
     if (data.length > 0) {
       return data.some(({ isPending = false, isStreaming = false, isThinking = false, isAborted = false }) => (isPending || isStreaming || isThinking) && !isAborted);
@@ -30,6 +34,7 @@ export function MessageList(props: { data: UIMessage[]; onRegenerate: (index: nu
 
     return false;
   }, [data]);
+  const allowRegenerate = provider !== AIProviderEnum.OPENCLAW;
 
   useUpdateLayoutEffect(() => {
     if (isAtEnd) {
@@ -59,7 +64,12 @@ export function MessageList(props: { data: UIMessage[]; onRegenerate: (index: nu
           {data.map(({ role, content, thinkingContent, thinkingDuration, isPending, isThinking, isStreaming, cost }, index) => {
             if (role === 'user') {
               return (
-                <View key={index} className="flex w-full scroll-mt-5 flex-row justify-end">
+                <View
+                  key={index}
+                  className="flex w-full scroll-mt-5 flex-row justify-end"
+                  onLayout={e => {
+                    messagePositions.current[index] = e.nativeEvent.layout.y;
+                  }}>
                   <Text className="w-max max-w-[75%] rounded-[20px] bg-accent px-4 py-2 font-medium leading-6" selectable>
                     {content}
                   </Text>
@@ -102,20 +112,39 @@ export function MessageList(props: { data: UIMessage[]; onRegenerate: (index: nu
                       </>
                     ) : null}
                     <Copy className="w-10 text-muted-foreground" content={content} iconSize={16} showText={false} />
-                    <Separator orientation="vertical" className="h-4" />
-                    <Button variant="ghost" size="icon" onPress={() => onRegenerate(index)}>
-                      <Icon as={RefreshCcw} size={16} />
-                    </Button>
+                    {allowRegenerate ? (
+                      <>
+                        <Separator orientation="vertical" className="h-4" />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onPress={() => {
+                            autoScrollEnabled.current = false;
+                            const userMsgIndex = index - 1;
+                            scroller.current?.scrollTo({ y: Math.max(0, messagePositions.current[userMsgIndex] - 16), animated: true });
+                            onRegenerate(index);
+                          }}>
+                          <Icon as={RefreshCcw} size={16} />
+                        </Button>
+                      </>
+                    ) : null}
                   </View>
                 )}
               </View>
             );
           })}
           {error ? (
-            <Alert variant="destructive" icon={AlertCircleIcon}>
-              <AlertTitle>{error.name}</AlertTitle>
-              <AlertDescription style={{ fontFamily: 'Google_Sans_Code' }}>{'responseBody' in error && error.responseBody ? JSON.stringify(JSON.parse(error.responseBody as string), null, 2) : error.message}</AlertDescription>
-            </Alert>
+            <View>
+              <Alert variant="destructive" icon={AlertCircleIcon}>
+                <AlertTitle>{error.name}</AlertTitle>
+                <AlertDescription style={{ fontFamily: 'Google_Sans_Code' }}>{'responseBody' in error && error.responseBody ? JSON.stringify(JSON.parse(error.responseBody as string), null, 2) : error.message}</AlertDescription>
+              </Alert>
+              {allowRegenerate ? (
+                <Button variant="secondary" className="mt-2 w-full" onPress={() => onRegenerate(-1)}>
+                  <Text>Retry</Text>
+                </Button>
+              ) : null}
+            </View>
           ) : null}
         </View>
       </ScrollView>
