@@ -1,4 +1,4 @@
-# Nano AI
+sha256:50b60e4a1b57e2a638a0818f7d82b4b31cd19b34a8910d6b98d40555c09a18ad #Nano AI
 
 Nano AI is a modern cross-platform chat client for [Ollama](https://ollama.com/) built with [React Native](https://reactnative.dev/). It delivers a native-quality experience on every device while keeping conversations fast and private.
 
